@@ -340,7 +340,7 @@ def view_transactions_by_item(item_id):
 def login():
     """Handle user login - IDE Friendly Version"""
     print("\n=== LOGIN ===")
-    print("Note: Password will be visible (IDE terminal mode)")
+    print("Note: Password will be visible (IDE terminal mode), since the getpass module was not working :(")
     username = input("Username: ")
     password = input("Password: ")  # Regular input for IDE compatibility
     
