@@ -1,7 +1,6 @@
 # Supermarket Inventory Management System with SQLite Integration
 import sqlite3
 import hashlib
-import getpass
 from datetime import datetime
 
 
@@ -23,8 +22,6 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
-
-
 
 def create_categories_table():
     """Create a categories table to manage product categories"""
@@ -65,7 +62,7 @@ def create_transactions_table():
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             item_id INTEGER,
-            transaction_type TEXT NOT NULL, -- 'IN' for stock in, 'OUT' for stock out
+            transaction_type TEXT NOT NULL,
             quantity INTEGER NOT NULL,
             date TEXT NOT NULL,
             notes TEXT,
@@ -150,22 +147,7 @@ def add_item(name, category, quantity, price):
     conn.commit()
     conn.close()
 
-def add_item_to_db(name, category, quantity, price):
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('''INSERT INTO inventory (name, category, quantity, price) VALUES (?, ?, ?, ?)''', (name, category, quantity, price))
-    conn.commit()
-    conn.close()
-
 def view_items():
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute('SELECT * FROM inventory')
-    items = c.fetchall()
-    conn.close()
-    return items
-
-def view_inventory():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute('SELECT * FROM inventory')
@@ -191,7 +173,7 @@ def update_item(item_id, name=None, category=None, quantity=None, price=None):
         fields.append('price = ?')
         values.append(price)
     
-    if not fields:  # No fields to update
+    if not fields:
         conn.close()
         return
         
@@ -239,7 +221,7 @@ def update_category(category_id, name=None, description=None):
         fields.append('description = ?')
         values.append(description)
     
-    if not fields:  # No fields to update
+    if not fields:
         conn.close()
         return
         
@@ -298,7 +280,7 @@ def update_supplier(supplier_id, name=None, contact_person=None, phone=None, ema
         fields.append('address = ?')
         values.append(address)
     
-    if not fields:  # No fields to update
+    if not fields:
         conn.close()
         return
         
@@ -356,16 +338,11 @@ def view_transactions_by_item(item_id):
     return transactions
 
 def login():
-    """Handle user login"""
+    """Handle user login - IDE Friendly Version"""
     print("\n=== LOGIN ===")
+    print("Note: Password will be visible (IDE terminal mode)")
     username = input("Username: ")
-    
-    # Try to use getpass, fallback to regular input if it fails
-    try:
-        password = getpass.getpass("Password: ")
-    except Exception:
-        print("Note: Password will be visible (getpass not supported in this environment)")
-        password = input("Password: ")
+    password = input("Password: ")  # Regular input for IDE compatibility
     
     user = authenticate_user(username, password)
     if user:
@@ -376,9 +353,10 @@ def login():
         return None
 
 def setup_first_time():
-    """Setup first-time admin user"""
+    """Setup first-time admin user - IDE Friendly Version"""
     print("\n=== FIRST TIME SETUP ===")
     print("Creating default admin user...")
+    print("Note: Password will be visible (IDE terminal mode)")
     
     while True:
         username = input("Enter admin username: ").strip()
@@ -387,12 +365,7 @@ def setup_first_time():
         print("Username cannot be empty!")
     
     while True:
-        try:
-            password = getpass.getpass("Enter admin password: ")
-        except Exception:
-            print("Note: Password will be visible (getpass not supported in this environment)")
-            password = input("Enter admin password: ")
-        
+        password = input("Enter admin password: ")  # Regular input for IDE compatibility
         if len(password) >= 4:
             break
         print("Password must be at least 4 characters!")
@@ -408,7 +381,6 @@ def setup_first_time():
 
 def main():
     init_db()
-    # Create additional tables
     create_categories_table()
     create_suppliers_table()
     create_transactions_table()
@@ -428,7 +400,7 @@ def main():
     
     # Main menu
     while True:
-        print(f"\nSupermarket Inventory Management System")
+        print(f"\nMetlab Supermarket Inventory Management System")
         print(f"Logged in as: {current_user['username']} ({current_user['role']})")
         print("=== INVENTORY MANAGEMENT ===")
         print("1. Add Item")
@@ -576,11 +548,7 @@ def main():
         elif current_user['role'] == 'admin':
             if choice == '16':
                 username = input("New username: ")
-                try:
-                    password = getpass.getpass("New password: ")
-                except Exception:
-                    print("Note: Password will be visible (getpass not supported in this environment)")
-                    password = input("New password: ")
+                password = input("New password: ")  # Regular input for IDE compatibility
                 email = input("Email (optional): ") or None
                 role = input("Role (user/admin): ").lower() or 'user'
                 
