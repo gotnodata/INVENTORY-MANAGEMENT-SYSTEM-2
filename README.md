@@ -1,6 +1,6 @@
-# Inventory Management System
+# Metlab Supermarket Inventory Management System
 
-A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces with secure user authentication.
+A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces with secure user authentication. Designed for Metlab Supermarket operations.
 
 ## 🚀 Features
 
@@ -20,9 +20,10 @@ A comprehensive supermarket inventory management system built with Python and SQ
 - **First-Time Setup**: Automatic admin account creation on first run
 
 ### User Interfaces
-- **Console Interface**: Traditional command-line interface (`main.py`)
-- **Graphical Interface**: Modern GUI with tabbed layout (`gui.py`)
+- **Console Interface**: Traditional command-line interface (`main.py`) - IDE-friendly version
+- **Graphical Interface**: Modern GUI with tabbed layout (`gui.py`) with full authentication
 - **Dual Access**: Both interfaces share the same database and authentication
+- **Cross-Platform Compatibility**: Works in IDE terminals and system terminals
 
 ## 📋 System Requirements
 
@@ -53,12 +54,13 @@ A comprehensive supermarket inventory management system built with Python and SQ
 ### First Time Setup
 The first time you run either interface, you'll be prompted to create an admin account:
 
-**GUI Setup:**
+**GUI Setup (Recommended):**
 ```bash
 python gui.py
 ```
 - Follow the prompts to create the first admin user
-- Use the login window to access the system
+- Use the modern login window to access the system
+- Full graphical interface with user management
 
 **Console Setup:**
 ```bash
@@ -66,6 +68,26 @@ python main.py
 ```
 - Follow the console prompts to create the first admin user
 - Login with your credentials
+- IDE-friendly version (passwords visible in development)
+
+### Development vs Production
+
+#### Development (IDE Terminals)
+```bash
+python main.py
+```
+- ✅ Works in any IDE terminal (VS Code, PyCharm, etc.)
+- ⚠️ Passwords visible during input
+- ✅ Full functionality maintained
+
+#### Production (System Terminals)
+```bash
+# Use Command Prompt or PowerShell for secure password input
+python main_backup_secure.py
+```
+- ✅ Passwords hidden during input
+- ✅ Production-ready security
+- ✅ Same functionality
 
 ### User Roles
 
@@ -170,10 +192,11 @@ The console interface provides the same functionality through a menu-driven syst
 
 ```
 === LOGIN ===
+Note: Password will be visible (IDE terminal mode)
 Username: [your_username]
 Password: [your_password]
 
-Supermarket Inventory Management System
+Metlab Supermarket Inventory Management System
 Logged in as: [username] ([role])
 === INVENTORY MANAGEMENT ===
 1. Add Item
@@ -205,6 +228,13 @@ Logged in as: [username] ([role])
 19. Exit
 ```
 
+### Console Features
+- **IDE-Friendly**: Works in VS Code, PyCharm, and other IDE terminals
+- **Visible Passwords**: Development-friendly (passwords shown during input)
+- **Full Functionality**: All inventory management features available
+- **User Management**: Admin can create and manage users
+- **Role-Based Access**: Different menus for admin vs regular users
+
 ## 🔧 Technical Details
 
 ### Authentication Security
@@ -220,8 +250,9 @@ Logged in as: [username] ([role])
 - **Design Pattern**: Modular functions with clear separation of concerns
 
 ### Key Files
-- `main.py` - Core business logic, authentication, and console interface
-- `gui.py` - Graphical user interface with authentication
+- `main.py` - Core business logic, authentication, and IDE-friendly console interface
+- `main_backup_secure.py` - Original secure version with hidden passwords (for production)
+- `gui.py` - Graphical user interface with full authentication
 - `inventory.db` - SQLite database (created automatically)
 
 ### Error Handling
@@ -233,7 +264,7 @@ Logged in as: [username] ([role])
 
 ## 📝 Usage Examples
 
-### First-Time Admin Setup
+**First-Time Admin Setup**
 1. Run `python gui.py` or `python main.py`
 2. Follow the prompts to create an admin account
 3. Login with your new admin credentials
@@ -249,6 +280,7 @@ Logged in as: [username] ([role])
 1. Login as admin
 2. Select option 16 (Add User)
 3. Enter user details when prompted
+4. Note: Password will be visible in IDE terminal mode
 
 ### Adding an Item (GUI)
 1. Navigate to the Inventory tab
@@ -266,6 +298,17 @@ Logged in as: [username] ([role])
 2. Type item name or category
 3. Click "Search" to filter results
 
+### Development Workflow
+**For development in IDE terminals:**
+```bash
+python main.py  # IDE-friendly version
+```
+
+**For production deployment:**
+```bash
+python main_backup_secure.py  # Secure version with hidden passwords
+```
+
 ## 🔄 Data Synchronization
 
 Both interfaces share the same database and authentication system:
@@ -282,10 +325,16 @@ Both interfaces share the same database and authentication system:
 - Ensure correct username and password
 - Check if user account exists (admin can view users)
 - Passwords are case-sensitive
+- For IDE terminals: Passwords will be visible during input
 
 **GUI won't open:**
 - Ensure tkinter is installed: `pip install tk`
-- Check Python version compatibility
+- Check Python version compatibility (3.7+ required)
+
+**Console Input Issues:**
+- **IDE Terminals**: Use `python main.py` (passwords visible)
+- **System Terminals**: Use `python main_backup_secure.py` (passwords hidden)
+- **VS Code/PyCharm**: Console version works with visible passwords
 
 **Database errors:**
 - Ensure write permissions in the project directory
@@ -295,6 +344,7 @@ Both interfaces share the same database and authentication system:
 - Ensure admin username is at least 1 character
 - Password must be at least 4 characters
 - Check database write permissions
+- Try running in system terminal if IDE setup fails
 
 ### Getting Help
 
@@ -312,7 +362,8 @@ Contributions are welcome! Please feel free to submit issues and enhancement req
 2. Create a feature branch
 3. Make your changes
 4. Test thoroughly (both GUI and console interfaces)
-5. Submit a pull request
+5. Test in both IDE terminals and system terminals
+6. Submit a pull request
 
 ## 📄 License
 
@@ -327,4 +378,4 @@ For support and questions:
 
 ---
 
-**Built with ❤️ using Python, SQLite, and Tkinter**
+**Built with ❤️ for Metlab Supermarket using Python, SQLite, and Tkinter**
