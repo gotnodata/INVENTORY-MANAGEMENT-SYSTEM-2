@@ -1,0 +1,43 @@
+# Metlab Supermarket Inventory Management System
+# Requirements file for Python dependencies
+# 
+# This project uses primarily standard Python libraries.
+# No external packages are required for basic functionality.
+#
+# Note: tkinter is included with most Python installations by default.
+# If tkinter is not available, install it based on your operating system:
+#
+# Ubuntu/Debian: sudo apt-get install python3-tk
+# Fedora: sudo dnf install python3-tkinter
+# macOS: Usually included with Python from python.org
+# Windows: Usually included with Python installer
+
+# Optional: For enhanced security in production environments
+# cryptography>=3.4.8  # Alternative to hashlib for more advanced encryption
+# bcrypt>=3.2.0       # Alternative password hashing (more secure than SHA-256)
+
+# Development and testing dependencies (optional)
+# pytest>=6.2.0       # For unit testing
+# pytest-cov>=2.12.0  # For test coverage
+# black>=21.0.0        # For code formatting
+# flake8>=3.9.0        # For linting
+
+# Database tools (optional)
+# sqlite3-utils>=3.30.0  # For advanced SQLite operations
+
+# GUI enhancements (optional)
+# pillow>=8.0.0       # For image handling in GUI
+# customtkinter>=5.0.0  # For modern GUI themes (alternative to tkinter)
+
+# Note: The core application runs with only Python standard library:
+# - sqlite3 (database)
+# - hashlib (password hashing)
+# - getpass (secure password input)
+# - datetime (timestamps)
+# - tkinter (GUI interface)
+# - tkinter.ttk (themed GUI widgets)
+# - tkinter.messagebox (GUI dialogs)
+# - tkinter.simpledialog (GUI input dialogs)
+
+# Minimum Python version required: 3.7+
+# Recommended Python version: 3.8+ for best compatibility
