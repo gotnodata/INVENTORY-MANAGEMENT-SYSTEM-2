@@ -359,7 +359,13 @@ def login():
     """Handle user login"""
     print("\n=== LOGIN ===")
     username = input("Username: ")
-    password = getpass.getpass("Password: ")
+    
+    # Try to use getpass, fallback to regular input if it fails
+    try:
+        password = getpass.getpass("Password: ")
+    except Exception:
+        print("Note: Password will be visible (getpass not supported in this environment)")
+        password = input("Password: ")
     
     user = authenticate_user(username, password)
     if user:
@@ -381,7 +387,12 @@ def setup_first_time():
         print("Username cannot be empty!")
     
     while True:
-        password = getpass.getpass("Enter admin password: ")
+        try:
+            password = getpass.getpass("Enter admin password: ")
+        except Exception:
+            print("Note: Password will be visible (getpass not supported in this environment)")
+            password = input("Enter admin password: ")
+        
         if len(password) >= 4:
             break
         print("Password must be at least 4 characters!")
@@ -565,7 +576,11 @@ def main():
         elif current_user['role'] == 'admin':
             if choice == '16':
                 username = input("New username: ")
-                password = getpass.getpass("New password: ")
+                try:
+                    password = getpass.getpass("New password: ")
+                except Exception:
+                    print("Note: Password will be visible (getpass not supported in this environment)")
+                    password = input("New password: ")
                 email = input("Email (optional): ") or None
                 role = input("Role (user/admin): ").lower() or 'user'
                 
