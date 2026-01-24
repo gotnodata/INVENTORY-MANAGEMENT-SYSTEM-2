@@ -4,10 +4,81 @@ import sqlite3
 from datetime import datetime
 import main
 
-class InventoryManagementGUI:
+class LoginWindow:
     def __init__(self, root):
         self.root = root
-        self.root.title("Inventory Management System")
+        self.root.title("Inventory Management System - Login")
+        self.root.geometry("400x300")
+        self.root.resizable(False, False)
+        
+        # Center the window
+        self.center_window()
+        
+        # Login frame
+        login_frame = ttk.Frame(root, padding="20")
+        login_frame.pack(expand=True)
+        
+        # Title
+        title_label = ttk.Label(login_frame, text="Inventory Management System", 
+                               font=("Arial", 16, "bold"))
+        title_label.grid(row=0, column=0, columnspan=2, pady=20)
+        
+        # Username
+        ttk.Label(login_frame, text="Username:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        self.username_var = tk.StringVar()
+        username_entry = ttk.Entry(login_frame, textvariable=self.username_var, width=20)
+        username_entry.grid(row=1, column=1, pady=5)
+        username_entry.focus()
+        
+        # Password
+        ttk.Label(login_frame, text="Password:").grid(row=2, column=0, sticky=tk.W, pady=5)
+        self.password_var = tk.StringVar()
+        password_entry = ttk.Entry(login_frame, textvariable=self.password_var, 
+                                  show="*", width=20)
+        password_entry.grid(row=2, column=1, pady=5)
+        
+        # Buttons
+        button_frame = ttk.Frame(login_frame)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=20)
+        
+        ttk.Button(button_frame, text="Login", command=self.login).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Exit", command=root.quit).pack(side=tk.LEFT, padx=5)
+        
+        # Bind Enter key to login
+        root.bind('<Return>', lambda event: self.login())
+        
+        self.authenticated_user = None
+        
+    def center_window(self):
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f'{width}x{height}+{x}+{y}')
+        
+    def login(self):
+        username = self.username_var.get().strip()
+        password = self.password_var.get()
+        
+        if not username or not password:
+            messagebox.showerror("Error", "Please enter both username and password!")
+            return
+            
+        user = main.authenticate_user(username, password)
+        if user:
+            self.authenticated_user = user
+            self.root.destroy()
+        else:
+            messagebox.showerror("Login Failed", "Invalid username or password!")
+            self.password_var.set("")
+            self.username_var.focus()
+
+class InventoryManagementGUI:
+    def __init__(self, root, user):
+        self.root = root
+        self.current_user = user
+        self.root.title(f"Inventory Management System - {user['username']} ({user['role']})")
         self.root.geometry("1200x700")
         
         # Initialize database
@@ -15,6 +86,10 @@ class InventoryManagementGUI:
         main.create_categories_table()
         main.create_suppliers_table()
         main.create_transactions_table()
+        main.create_users_table()
+        
+        # Create menu bar
+        self.create_menu()
         
         # Create notebook for tabs
         self.notebook = ttk.Notebook(root)
@@ -26,9 +101,201 @@ class InventoryManagementGUI:
         self.create_suppliers_tab()
         self.create_transactions_tab()
         
+        # Admin-only user management tab
+        if user['role'] == 'admin':
+            self.create_users_tab()
+        
         # Status bar
-        self.status_bar = tk.Label(root, text="Ready", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.status_bar = tk.Label(root, text=f"Logged in as: {user['username']} ({user['role']})", 
+                                  bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        
+    def create_menu(self):
+        menubar = tk.Menu(self.root)
+        self.root.config(menu=menubar)
+        
+        # File menu
+        file_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Logout", command=self.logout)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.root.quit)
+        
+        # User menu (admin only)
+        if self.current_user['role'] == 'admin':
+            user_menu = tk.Menu(menubar, tearoff=0)
+            menubar.add_cascade(label="Users", menu=user_menu)
+            user_menu.add_command(label="Add User", command=self.show_add_user_dialog)
+            user_menu.add_command(label="View Users", command=self.view_users_dialog)
+        
+        # Help menu
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="About", command=self.show_about)
+        
+    def logout(self):
+        if messagebox.askyesno("Logout", "Are you sure you want to logout?"):
+            self.root.destroy()
+            self.show_login()
+            
+    def show_login(self):
+        root = tk.Tk()
+        login_window = LoginWindow(root)
+        root.mainloop()
+        
+        if login_window.authenticated_user:
+            new_root = tk.Tk()
+            app = InventoryManagementGUI(new_root, login_window.authenticated_user)
+            new_root.mainloop()
+            
+    def show_about(self):
+        about_text = """Inventory Management System v2.0
+        
+Features:
+• Inventory Management
+• Category Management  
+• Supplier Management
+• Transaction Tracking
+• User Authentication
+• Role-based Access Control
+
+Developed with Python and Tkinter"""
+        messagebox.showinfo("About", about_text)
+        
+    def show_add_user_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Add New User")
+        dialog.geometry("400x350")
+        dialog.resizable(False, False)
+        
+        # Center the dialog
+        dialog.update_idletasks()
+        width = dialog.winfo_width()
+        height = dialog.winfo_height()
+        x = (dialog.winfo_screenwidth() // 2) - (width // 2)
+        y = (dialog.winfo_screenheight() // 2) - (height // 2)
+        dialog.geometry(f'{width}x{height}+{x}+{y}')
+        
+        frame = ttk.Frame(dialog, padding="20")
+        frame.pack(expand=True)
+        
+        # Form fields
+        ttk.Label(frame, text="Username:").grid(row=0, column=0, sticky=tk.W, pady=5)
+        username_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=username_var, width=25).grid(row=0, column=1, pady=5)
+        
+        ttk.Label(frame, text="Password:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        password_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=password_var, show="*", width=25).grid(row=1, column=1, pady=5)
+        
+        ttk.Label(frame, text="Email:").grid(row=2, column=0, sticky=tk.W, pady=5)
+        email_var = tk.StringVar()
+        ttk.Entry(frame, textvariable=email_var, width=25).grid(row=2, column=1, pady=5)
+        
+        ttk.Label(frame, text="Role:").grid(row=3, column=0, sticky=tk.W, pady=5)
+        role_var = tk.StringVar(value="user")
+        role_combo = ttk.Combobox(frame, textvariable=role_var, values=["user", "admin"], width=23)
+        role_combo.grid(row=3, column=1, pady=5)
+        
+        def create_user():
+            username = username_var.get().strip()
+            password = password_var.get()
+            email = email_var.get().strip() or None
+            role = role_var.get()
+            
+            if not username or not password:
+                messagebox.showerror("Error", "Username and password are required!")
+                return
+                
+            if len(password) < 4:
+                messagebox.showerror("Error", "Password must be at least 4 characters!")
+                return
+                
+            if main.create_user(username, password, email, role):
+                messagebox.showinfo("Success", f"User '{username}' created successfully!")
+                dialog.destroy()
+                if hasattr(self, 'users_tree'):
+                    self.refresh_users()
+            else:
+                messagebox.showerror("Error", "Failed to create user (username may already exist)!")
+        
+        # Buttons
+        button_frame = ttk.Frame(frame)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=20)
+        
+        ttk.Button(button_frame, text="Create User", command=create_user).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        
+    def view_users_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Manage Users")
+        dialog.geometry("600x400")
+        
+        frame = ttk.Frame(dialog, padding="10")
+        frame.pack(fill='both', expand=True)
+        
+        ttk.Label(frame, text="Users", font=("Arial", 12, "bold")).pack(pady=5)
+        
+        # Treeview for users
+        columns = ('ID', 'Username', 'Email', 'Role', 'Created At')
+        self.users_tree = ttk.Treeview(frame, columns=columns, show='headings', height=15)
+        
+        for col in columns:
+            self.users_tree.heading(col, text=col)
+            self.users_tree.column(col, width=100)
+        
+        scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=self.users_tree.yview)
+        self.users_tree.configure(yscrollcommand=scrollbar.set)
+        
+        self.users_tree.pack(side=tk.LEFT, fill='both', expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill='y')
+        
+        # Button frame
+        button_frame = ttk.Frame(dialog)
+        button_frame.pack(pady=10)
+        
+        ttk.Button(button_frame, text="Add User", command=self.show_add_user_dialog).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Refresh", command=self.refresh_users).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Close", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        
+        self.refresh_users()
+        
+    def refresh_users(self):
+        if hasattr(self, 'users_tree'):
+            for item in self.users_tree.get_children():
+                self.users_tree.delete(item)
+                
+            users = main.get_all_users()
+            for user in users:
+                self.users_tree.insert('', 'end', values=user)
+                
+    def create_users_tab(self):
+        # Users Tab (Admin only)
+        self.users_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.users_frame, text="Users")
+        
+        # Button frame
+        button_frame = ttk.Frame(self.users_frame)
+        button_frame.pack(pady=10)
+        
+        ttk.Button(button_frame, text="Add User", command=self.show_add_user_dialog).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Refresh", command=self.refresh_users).pack(side=tk.LEFT, padx=5)
+        
+        # Treeview for users
+        columns = ('ID', 'Username', 'Email', 'Role', 'Created At')
+        self.users_tree = ttk.Treeview(self.users_frame, columns=columns, show='headings', height=20)
+        
+        for col in columns:
+            self.users_tree.heading(col, text=col)
+            self.users_tree.column(col, width=100)
+        
+        scrollbar = ttk.Scrollbar(self.users_frame, orient=tk.VERTICAL, command=self.users_tree.yview)
+        self.users_tree.configure(yscrollcommand=scrollbar.set)
+        
+        self.users_tree.pack(side=tk.LEFT, fill='both', expand=True, padx=10, pady=10)
+        scrollbar.pack(side=tk.RIGHT, fill='y')
+        
+        self.refresh_users()
         
     def create_inventory_tab(self):
         # Inventory Tab
@@ -590,6 +857,39 @@ class InventoryManagementGUI:
         self.transaction_item_combo['values'] = item_names
 
 if __name__ == "__main__":
+    # Initialize database and create admin user if needed
+    main.init_db()
+    main.create_categories_table()
+    main.create_suppliers_table()
+    main.create_transactions_table()
+    main.create_users_table()
+    
+    # Check if any users exist
+    users = main.get_all_users()
+    if not users:
+        # Create first admin user
+        setup_root = tk.Tk()
+        setup_root.withdraw()  # Hide the main window
+        
+        username = simpledialog.askstring("First Time Setup", "Enter admin username:")
+        if username:
+            password = simpledialog.askstring("First Time Setup", "Enter admin password:", show='*')
+            if password and len(password) >= 4:
+                email = simpledialog.askstring("First Time Setup", "Enter admin email (optional):")
+                if main.create_user(username, password, email, 'admin'):
+                    messagebox.showinfo("Success", f"Admin user '{username}' created successfully!")
+                else:
+                    messagebox.showerror("Error", "Failed to create admin user!")
+        
+        setup_root.destroy()
+    
+    # Show login window
     root = tk.Tk()
-    app = InventoryManagementGUI(root)
+    login_window = LoginWindow(root)
     root.mainloop()
+    
+    # If login successful, show main application
+    if login_window.authenticated_user:
+        main_root = tk.Tk()
+        app = InventoryManagementGUI(main_root, login_window.authenticated_user)
+        main_root.mainloop()

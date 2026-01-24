@@ -1,5 +1,8 @@
 # Supermarket Inventory Management System with SQLite Integration
 import sqlite3
+import hashlib
+import getpass
+from datetime import datetime
 
 
 
@@ -54,8 +57,6 @@ def create_suppliers_table():
     conn.commit()
     conn.close()
 
-
-
 def create_transactions_table():
     """Create a transactions table to log inventory movements"""
     conn = sqlite3.connect(DB_NAME)
@@ -73,6 +74,73 @@ def create_transactions_table():
     ''')
     conn.commit()
     conn.close()
+
+def create_users_table():
+    """Create a users table for authentication"""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            email TEXT,
+            role TEXT DEFAULT 'user',
+            created_at TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def hash_password(password):
+    """Hash a password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password, hash_value):
+    """Verify a password against its hash"""
+    return hash_password(password) == hash_value
+
+def create_user(username, password, email=None, role='user'):
+    """Create a new user"""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    # Check if user already exists
+    c.execute('SELECT id FROM users WHERE username = ?', (username,))
+    if c.fetchone():
+        conn.close()
+        return False
+    
+    # Create user
+    password_hash = hash_password(password)
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    c.execute('INSERT INTO users (username, password_hash, email, role, created_at) VALUES (?, ?, ?, ?, ?)',
+              (username, password_hash, email, role, created_at))
+    conn.commit()
+    conn.close()
+    return True
+
+def authenticate_user(username, password):
+    """Authenticate a user"""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('SELECT id, username, password_hash, role FROM users WHERE username = ?', (username,))
+    user = c.fetchone()
+    conn.close()
+    
+    if user and verify_password(password, user[2]):
+        return {'id': user[0], 'username': user[1], 'role': user[3]}
+    return None
+
+def get_all_users():
+    """Get all users (for admin purposes)"""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('SELECT id, username, email, role, created_at FROM users')
+    users = c.fetchall()
+    conn.close()
+    return users
 
 def add_item(name, category, quantity, price):
     conn = sqlite3.connect(DB_NAME)
@@ -229,6 +297,11 @@ def update_supplier(supplier_id, name=None, contact_person=None, phone=None, ema
     if address is not None:
         fields.append('address = ?')
         values.append(address)
+    
+    if not fields:  # No fields to update
+        conn.close()
+        return
+        
     values.append(supplier_id)
     sql = f'UPDATE suppliers SET {", ".join(fields)} WHERE id = ?'
     c.execute(sql, values)
@@ -282,16 +355,70 @@ def view_transactions_by_item(item_id):
     conn.close()
     return transactions
 
+def login():
+    """Handle user login"""
+    print("\n=== LOGIN ===")
+    username = input("Username: ")
+    password = getpass.getpass("Password: ")
+    
+    user = authenticate_user(username, password)
+    if user:
+        print(f"Welcome, {user['username']}!")
+        return user
+    else:
+        print("Invalid username or password!")
+        return None
+
+def setup_first_time():
+    """Setup first-time admin user"""
+    print("\n=== FIRST TIME SETUP ===")
+    print("Creating default admin user...")
+    
+    while True:
+        username = input("Enter admin username: ").strip()
+        if username:
+            break
+        print("Username cannot be empty!")
+    
+    while True:
+        password = getpass.getpass("Enter admin password: ")
+        if len(password) >= 4:
+            break
+        print("Password must be at least 4 characters!")
+    
+    email = input("Enter admin email (optional): ").strip() or None
+    
+    if create_user(username, password, email, 'admin'):
+        print(f"Admin user '{username}' created successfully!")
+        return True
+    else:
+        print("Failed to create admin user!")
+        return False
+
 def main():
     init_db()
     # Create additional tables
     create_categories_table()
     create_suppliers_table()
     create_transactions_table()
+    create_users_table()
     
+    # Check if any users exist
+    users = get_all_users()
+    if not users:
+        print("No users found. Setting up first admin user.")
+        if not setup_first_time():
+            return
     
+    # Login
+    current_user = None
+    while not current_user:
+        current_user = login()
+    
+    # Main menu
     while True:
-        print("\nSupermarket Inventory Management System")
+        print(f"\nSupermarket Inventory Management System")
+        print(f"Logged in as: {current_user['username']} ({current_user['role']})")
         print("=== INVENTORY MANAGEMENT ===")
         print("1. Add Item")
         print("2. View Items")
@@ -311,8 +438,19 @@ def main():
         print("13. Add Transaction")
         print("14. View All Transactions")
         print("15. View Item Transactions")
-        print("\n16. Exit")
+        
+        if current_user['role'] == 'admin':
+            print("\n=== USER MANAGEMENT ===")
+            print("16. Add User")
+            print("17. View Users")
+            print("18. Logout")
+            print("19. Exit")
+        else:
+            print("\n16. Logout")
+            print("17. Exit")
+            
         choice = input("Select an option: ")
+        
         if choice == '1':
             name = input("Item name: ")
             category = input("Category: ")
@@ -384,7 +522,6 @@ def main():
             for sup in suppliers:
                 print(f"{sup[0]} | {sup[1]} | {sup[2] or 'N/A'} | {sup[3] or 'N/A'} | {sup[4] or 'N/A'} | {sup[5] or 'N/A'}")
                
-        
         elif choice == '11':
             sup_id = int(input("Enter supplier ID to update: "))
             print("Leave field blank to keep current value.")
@@ -423,12 +560,53 @@ def main():
             print("ID | Type | Quantity | Date | Notes")
             for trans in transactions:
                 print(f"{trans[0]} | {trans[2]} | {trans[3]} | {trans[4]} | {trans[5] or 'N/A'}")
-            
-        elif choice == '16':
-            print("Hate to see you leave :(")
-            break
+        
+        # Admin-only options
+        elif current_user['role'] == 'admin':
+            if choice == '16':
+                username = input("New username: ")
+                password = getpass.getpass("New password: ")
+                email = input("Email (optional): ") or None
+                role = input("Role (user/admin): ").lower() or 'user'
+                
+                if role not in ['user', 'admin']:
+                    role = 'user'
+                
+                if create_user(username, password, email, role):
+                    print(f"User '{username}' created successfully!")
+                else:
+                    print("Failed to create user (username may already exist)!")
+                    
+            elif choice == '17':
+                users = get_all_users()
+                print("\nID | Username | Email | Role | Created At")
+                for user in users:
+                    print(f"{user[0]} | {user[1]} | {user[2] or 'N/A'} | {user[3]} | {user[4]}")
+                    
+            elif choice == '18':
+                print("Logging out...")
+                current_user = None
+                while not current_user:
+                    current_user = login()
+                    
+            elif choice == '19':
+                print("Goodbye!")
+                break
+        
+        # Regular user options
         else:
-            print("Invalid option. Try again.")
+            if choice == '16':
+                print("Logging out...")
+                current_user = None
+                while not current_user:
+                    current_user = login()
+                    
+            elif choice == '17':
+                print("Goodbye!")
+                break
+                
+            else:
+                print("Invalid option. Try again.")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
 # Inventory Management System
 
-A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces.
+A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces with secure user authentication.
 
 ## 🚀 Features
 
@@ -12,10 +12,17 @@ A comprehensive supermarket inventory management system built with Python and SQ
 - **Search & Filter**: Find items quickly by name or category
 - **Data Persistence**: SQLite database for reliable data storage
 
+### 🔐 Authentication System
+- **Secure Login**: Password-based authentication with SHA-256 hashing
+- **Role-Based Access Control**: Admin and regular user roles
+- **User Management**: Admins can create and manage user accounts
+- **Session Management**: Secure login/logout functionality
+- **First-Time Setup**: Automatic admin account creation on first run
+
 ### User Interfaces
 - **Console Interface**: Traditional command-line interface (`main.py`)
 - **Graphical Interface**: Modern GUI with tabbed layout (`gui.py`)
-- **Dual Access**: Both interfaces share the same database
+- **Dual Access**: Both interfaces share the same database and authentication
 
 ## 📋 System Requirements
 
@@ -43,19 +50,46 @@ A comprehensive supermarket inventory management system built with Python and SQ
 
 ## 🎯 Quick Start
 
-### Option 1: Graphical User Interface (Recommended)
+### First Time Setup
+The first time you run either interface, you'll be prompted to create an admin account:
+
+**GUI Setup:**
 ```bash
 python gui.py
 ```
+- Follow the prompts to create the first admin user
+- Use the login window to access the system
 
-### Option 2: Console Interface
+**Console Setup:**
 ```bash
 python main.py
 ```
+- Follow the console prompts to create the first admin user
+- Login with your credentials
 
-The first run will automatically create the SQLite database (`inventory.db`) and all necessary tables.
+### User Roles
+
+#### Admin Users
+- Full access to all inventory features
+- **User Management**: Create, view, and manage user accounts
+- **System Administration**: Complete control over the system
+- **GUI Access**: Additional "Users" tab and menu options
+
+#### Regular Users
+- Standard inventory management features
+- Can add, update, and view inventory items
+- Can manage categories, suppliers, and transactions
+- **Limited Access**: Cannot manage user accounts
 
 ## 📊 Database Schema
+
+### Users Table
+- `id` - Primary key
+- `username` - Unique username (required)
+- `password_hash` - SHA-256 hashed password (required)
+- `email` - User email address (optional)
+- `role` - User role ('user' or 'admin', default: 'user')
+- `created_at` - Account creation timestamp
 
 ### Inventory Table
 - `id` - Primary key
@@ -87,9 +121,15 @@ The first run will automatically create the SQLite database (`inventory.db`) and
 
 ## 🖥️ GUI Features
 
+### Login Window
+- **Secure Authentication**: Username and password login
+- **First-Time Setup**: Automatic admin account creation
+- **Error Handling**: Clear error messages for invalid credentials
+
 ### Main Interface
 - **Tabbed Layout**: Organized sections for different management areas
-- **Status Bar**: Real-time feedback for operations
+- **Status Bar**: Shows current logged-in user and role
+- **Menu Bar**: File, Users (admin only), and Help menus
 - **Responsive Design**: Clean, modern interface
 
 ### Inventory Tab
@@ -118,12 +158,23 @@ The first run will automatically create the SQLite database (`inventory.db`) and
 - Item selection dropdown
 - Transaction history with item names
 
+### Users Tab (Admin Only)
+- **User Management**: Add, view, and manage user accounts
+- **Role Assignment**: Set users as 'user' or 'admin'
+- **User Information**: View username, email, role, and creation date
+- **Account Creation**: Dialog for adding new users with validation
+
 ## 💻 Console Interface
 
-The console interface provides the same functionality through a menu-driven system:
+The console interface provides the same functionality through a menu-driven system with authentication:
 
 ```
+=== LOGIN ===
+Username: [your_username]
+Password: [your_password]
+
 Supermarket Inventory Management System
+Logged in as: [username] ([role])
 === INVENTORY MANAGEMENT ===
 1. Add Item
 2. View Items
@@ -147,10 +198,20 @@ Supermarket Inventory Management System
 14. View All Transactions
 15. View Item Transactions
 
-16. Exit
+=== USER MANAGEMENT === (Admin only)
+16. Add User
+17. View Users
+18. Logout
+19. Exit
 ```
 
 ## 🔧 Technical Details
+
+### Authentication Security
+- **Password Hashing**: SHA-256 algorithm for secure password storage
+- **Input Validation**: Proper validation for usernames and passwords
+- **Session Management**: Secure login/logout functionality
+- **Role-Based Access**: Different permissions for admin and regular users
 
 ### Architecture
 - **Backend**: Python with SQLite3
@@ -159,8 +220,8 @@ Supermarket Inventory Management System
 - **Design Pattern**: Modular functions with clear separation of concerns
 
 ### Key Files
-- `main.py` - Core business logic and console interface
-- `gui.py` - Graphical user interface
+- `main.py` - Core business logic, authentication, and console interface
+- `gui.py` - Graphical user interface with authentication
 - `inventory.db` - SQLite database (created automatically)
 
 ### Error Handling
@@ -168,17 +229,34 @@ Supermarket Inventory Management System
 - SQL injection protection with parameterized queries
 - Graceful error handling for database operations
 - User-friendly error messages
+- Authentication failure handling
 
 ## 📝 Usage Examples
 
+### First-Time Admin Setup
+1. Run `python gui.py` or `python main.py`
+2. Follow the prompts to create an admin account
+3. Login with your new admin credentials
+
+### Adding a User (Admin Only)
+**GUI:**
+1. Login as admin
+2. Go to Users tab or menu → Add User
+3. Fill in username, password, email, and role
+4. Click "Create User"
+
+**Console:**
+1. Login as admin
+2. Select option 16 (Add User)
+3. Enter user details when prompted
+
 ### Adding an Item (GUI)
-1. Open the GUI: `python gui.py`
-2. Navigate to the Inventory tab
-3. Fill in the form fields (name, category, quantity, price)
-4. Click "Add Item"
+1. Navigate to the Inventory tab
+2. Fill in the form fields (name, category, quantity, price)
+3. Click "Add Item"
 
 ### Adding a Transaction (Console)
-1. Run: `python main.py`
+1. Login to the system
 2. Select option 13 (Add Transaction)
 3. Enter item ID, transaction type (IN/OUT), quantity, and date
 4. Add optional notes
@@ -190,14 +268,20 @@ Supermarket Inventory Management System
 
 ## 🔄 Data Synchronization
 
-Both interfaces share the same database, allowing:
+Both interfaces share the same database and authentication system:
 - Seamless switching between GUI and console
 - Real-time data updates across interfaces
-- Consistent data integrity
+- Consistent user authentication across both interfaces
+- Shared user accounts and roles
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
+
+**Login Issues:**
+- Ensure correct username and password
+- Check if user account exists (admin can view users)
+- Passwords are case-sensitive
 
 **GUI won't open:**
 - Ensure tkinter is installed: `pip install tk`
@@ -207,15 +291,17 @@ Both interfaces share the same database, allowing:
 - Ensure write permissions in the project directory
 - Check if `inventory.db` is not locked by another process
 
-**Import errors:**
-- Verify all files are in the same directory
-- Check Python path settings
+**First-time setup issues:**
+- Ensure admin username is at least 1 character
+- Password must be at least 4 characters
+- Check database write permissions
 
 ### Getting Help
 
 1. Check the error messages carefully
 2. Ensure all requirements are met
 3. Verify file permissions and directory structure
+4. Check if users table exists in database
 
 ## 🤝 Contributing
 
@@ -225,7 +311,7 @@ Contributions are welcome! Please feel free to submit issues and enhancement req
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Test thoroughly (both GUI and console interfaces)
 5. Submit a pull request
 
 ## 📄 License
@@ -241,4 +327,4 @@ For support and questions:
 
 ---
 
-**Built with ❤️ using Python and SQLite**
+**Built with ❤️ using Python, SQLite, and Tkinter**
