@@ -9,7 +9,7 @@ DB_NAME = 'inventory.db'
 
 
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME) #Connects or creates the database file if it does not exist.
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS inventory (
@@ -24,7 +24,7 @@ def init_db():
     conn.close()
 
 def create_categories_table():
-    """Create a categories table to manage product categories"""
+    #Create a categories table to manage product categories
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute('''
@@ -38,7 +38,7 @@ def create_categories_table():
     conn.close()
 
 def create_suppliers_table():
-    """Create a suppliers table to track supplier information"""
+    #Create a suppliers table to track supplier information
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute('''
@@ -55,7 +55,7 @@ def create_suppliers_table():
     conn.close()
 
 def create_transactions_table():
-    """Create a transactions table to log inventory movements"""
+    #Create a transactions table to log inventory movements
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute('''
@@ -73,7 +73,7 @@ def create_transactions_table():
     conn.close()
 
 def create_users_table():
-    """Create a users table for authentication"""
+    #Create a users table for authentication
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute('''
