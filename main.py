@@ -418,7 +418,7 @@ def main():
         print("3. Update Item")
         print("4. Delete Item")
         print()
-        print("Get all items!")
+        print("$. Get all items!")
         print("\n=== CATEGORY MANAGEMENT ===")
         print("5. Add Category")
         print("6. View Categories")
@@ -477,7 +477,7 @@ def main():
             delete_item(item_id)
             print("Item deleted.")
 
-        elif choice == '':
+        elif choice == '$':
             items = get_all_items()
             print("\nID | Name | Category | Quantity | Price")
             for item in items:
