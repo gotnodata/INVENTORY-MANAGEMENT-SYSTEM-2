@@ -190,6 +190,16 @@ def delete_item(item_id):
     conn.commit()
     conn.close()
 
+def get_all_items():
+    """Get all items from inventory"""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('SELECT * FROM inventory')
+    items = c.fetchall()
+    conn.close()
+    return items
+
+
 # Category Management Functions
 def add_category(name, description=None):
     """Add a new category"""
@@ -407,6 +417,8 @@ def main():
         print("2. View Items")
         print("3. Update Item")
         print("4. Delete Item")
+        print()
+        print("Get all items!")
         print("\n=== CATEGORY MANAGEMENT ===")
         print("5. Add Category")
         print("6. View Categories")
@@ -464,6 +476,13 @@ def main():
             item_id = int(input("Enter item ID to delete: "))
             delete_item(item_id)
             print("Item deleted.")
+
+        elif choice == '':
+            items = get_all_items()
+            print("\nID | Name | Category | Quantity | Price")
+            for item in items:
+                print(f"{item[0]} | {item[1]} | {item[2]} | {item[3]} | ${item[4]:.2f}")
+              
             
         elif choice == '5':
             name = input("Category name: ")

@@ -333,6 +333,7 @@ Developed with Python and Tkinter"""
         ttk.Button(button_frame, text="Add Item", command=self.add_item).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Update Item", command=self.update_item).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Delete Item", command=self.delete_item).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Get All Items", command=self.get_all_items).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Clear Form", command=self.clear_inventory_form).pack(side=tk.LEFT, padx=5)
         
         # Right panel for list
@@ -363,12 +364,21 @@ Developed with Python and Tkinter"""
         search_frame = ttk.Frame(right_frame)
         search_frame.pack(fill=tk.X, pady=5)
         
-        ttk.Label(search_frame, text="Search:").pack(side=tk.LEFT)
+        # Top row for search label and entry
+        search_top_frame = ttk.Frame(search_frame)
+        search_top_frame.pack(fill=tk.X, pady=2)
+        
+        ttk.Label(search_top_frame, text="Search:").pack(side=tk.LEFT)
         self.search_var = tk.StringVar()
-        search_entry = ttk.Entry(search_frame, textvariable=self.search_var, width=30)
+        search_entry = ttk.Entry(search_top_frame, textvariable=self.search_var, width=30)
         search_entry.pack(side=tk.LEFT, padx=5)
-        ttk.Button(search_frame, text="Search", command=self.search_inventory).pack(side=tk.LEFT)
-        ttk.Button(search_frame, text="Refresh", command=self.refresh_inventory).pack(side=tk.LEFT, padx=5)
+        
+        # Bottom row for buttons
+        search_bottom_frame = ttk.Frame(search_frame)
+        search_bottom_frame.pack(fill=tk.X, pady=2)
+        
+        ttk.Button(search_bottom_frame, text="Search", command=self.search_inventory).pack(side=tk.LEFT)
+        ttk.Button(search_bottom_frame, text="Refresh", command=self.refresh_inventory).pack(side=tk.LEFT, padx=5)
         
         # Load initial data
         self.refresh_inventory()
@@ -656,6 +666,21 @@ Developed with Python and Tkinter"""
             self.item_category_var.set(item[2])
             self.item_quantity_var.set(item[3])
             self.item_price_var.set(item[4])
+            
+    def get_all_items(self):
+        """Display all items from inventory using get_all_items function"""
+        # Clear existing items
+        for item in self.inventory_tree.get_children():
+            self.inventory_tree.delete(item)
+            
+        # Add all items using the get_all_items function
+        items = main.get_all_items()
+        for item in items:
+            self.inventory_tree.insert('', 'end', values=item)
+            
+        # Update status bar
+        item_count = len(items)
+        self.status_bar.config(text=f"Displaying all {item_count} items from inventory")
             
     # Category methods
     def add_category(self):
