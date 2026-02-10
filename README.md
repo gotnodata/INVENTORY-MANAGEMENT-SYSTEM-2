@@ -1,6 +1,6 @@
-# Metlab Supermarket Inventory Management System
+Inventory Management System
 
-A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces with secure user authentication. Designed for Metlab Supermarket operations.
+A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces with secure user authentication. 
 
 ## 🚀 Features
 
