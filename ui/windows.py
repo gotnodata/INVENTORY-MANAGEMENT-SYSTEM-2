@@ -1,92 +1,23 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
-import sqlite3
+from tkinter import ttk, messagebox
 from datetime import datetime
-import main
+import config
+from database import models
+from auth import auth
+from ui.dialogs import AddUserDialog
 
-class LoginWindow:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Inventory Management System - Login")
-        self.root.geometry("400x300")
-        self.root.resizable(False, False)
-        
-        # Center the window
-        self.center_window()
-        
-        # Login frame
-        login_frame = ttk.Frame(root, padding="20")
-        login_frame.pack(expand=True)
-        
-        # Title
-        title_label = ttk.Label(login_frame, text="Inventory Management System", 
-                               font=("Arial", 16, "bold"))
-        title_label.grid(row=0, column=0, columnspan=2, pady=20)
-        
-        # Username
-        ttk.Label(login_frame, text="Username:").grid(row=1, column=0, sticky=tk.W, pady=5)
-        self.username_var = tk.StringVar()
-        username_entry = ttk.Entry(login_frame, textvariable=self.username_var, width=20)
-        username_entry.grid(row=1, column=1, pady=5)
-        username_entry.focus()
-        
-        # Password
-        ttk.Label(login_frame, text="Password:").grid(row=2, column=0, sticky=tk.W, pady=5)
-        self.password_var = tk.StringVar()
-        password_entry = ttk.Entry(login_frame, textvariable=self.password_var, 
-                                  show="*", width=20)
-        password_entry.grid(row=2, column=1, pady=5)
-        
-        # Buttons
-        button_frame = ttk.Frame(login_frame)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=20)
-        
-        ttk.Button(button_frame, text="Login", command=self.login).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Exit", command=root.quit).pack(side=tk.LEFT, padx=5)
-        
-        # Bind Enter key to login
-        root.bind('<Return>', lambda event: self.login())
-        
-        self.authenticated_user = None
-        
-    def center_window(self):
-        self.root.update_idletasks()
-        width = self.root.winfo_width()
-        height = self.root.winfo_height()
-        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.root.winfo_screenheight() // 2) - (height // 2)
-        self.root.geometry(f'{width}x{height}+{x}+{y}')
-        
-    def login(self):
-        username = self.username_var.get().strip()
-        password = self.password_var.get()
-        
-        if not username or not password:
-            messagebox.showerror("Error", "Please enter both username and password!")
-            return
-            
-        user = main.authenticate_user(username, password)
-        if user:
-            self.authenticated_user = user
-            self.root.destroy()
-        else:
-            messagebox.showerror("Login Failed", "Invalid username or password!")
-            self.password_var.set("")
-            self.username_var.focus()
 
 class InventoryManagementGUI:
+    """Main application window class"""
+    
     def __init__(self, root, user):
         self.root = root
         self.current_user = user
-        self.root.title(f"Inventory Management System - {user['username']} ({user['role']})")
-        self.root.geometry("1200x700")
+        self.root.title(f"{config.MAIN_WINDOW_TITLE} - {user['username']} ({user['role']})")
+        self.root.geometry(config.MAIN_WINDOW_GEOMETRY)
         
         # Initialize database
-        main.init_db()
-        main.create_categories_table()
-        main.create_suppliers_table()
-        main.create_transactions_table()
-        main.create_users_table()
+        self.init_database()
         
         # Create menu bar
         self.create_menu()
@@ -102,7 +33,7 @@ class InventoryManagementGUI:
         self.create_transactions_tab()
         
         # Admin-only user management tab
-        if user['role'] == 'admin':
+        if user['role'] == config.ROLE_ADMIN:
             self.create_users_tab()
         
         # Status bar
@@ -110,7 +41,16 @@ class InventoryManagementGUI:
                                   bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
         
+    def init_database(self):
+        """Initialize all database tables"""
+        models.init_db()
+        models.create_categories_table()
+        models.create_suppliers_table()
+        models.create_transactions_table()
+        models.create_users_table()
+        
     def create_menu(self):
+        """Create the menu bar"""
         menubar = tk.Menu(self.root)
         self.root.config(menu=menubar)
         
@@ -122,11 +62,16 @@ class InventoryManagementGUI:
         file_menu.add_command(label="Exit", command=self.root.quit)
         
         # User menu (admin only)
-        if self.current_user['role'] == 'admin':
+        if self.current_user['role'] == config.ROLE_ADMIN:
             user_menu = tk.Menu(menubar, tearoff=0)
             menubar.add_cascade(label="Users", menu=user_menu)
             user_menu.add_command(label="Add User", command=self.show_add_user_dialog)
             user_menu.add_command(label="View Users", command=self.view_users_dialog)
+            
+            # Database menu (admin only)
+            db_menu = tk.Menu(menubar, tearoff=0)
+            menubar.add_cascade(label="Database", menu=db_menu)
+            db_menu.add_command(label="Clear All Data", command=self.clear_all_data)
         
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -134,21 +79,12 @@ class InventoryManagementGUI:
         help_menu.add_command(label="About", command=self.show_about)
         
     def logout(self):
+        """Handle logout"""
         if messagebox.askyesno("Logout", "Are you sure you want to logout?"):
             self.root.destroy()
-            self.show_login()
-            
-    def show_login(self):
-        root = tk.Tk()
-        login_window = LoginWindow(root)
-        root.mainloop()
-        
-        if login_window.authenticated_user:
-            new_root = tk.Tk()
-            app = InventoryManagementGUI(new_root, login_window.authenticated_user)
-            new_root.mainloop()
             
     def show_about(self):
+        """Show about dialog"""
         about_text = """Inventory Management System v2.0
         
 Features:
@@ -163,70 +99,14 @@ Developed with Python and Tkinter"""
         messagebox.showinfo("About", about_text)
         
     def show_add_user_dialog(self):
-        dialog = tk.Toplevel(self.root)
-        dialog.title("Add New User")
-        dialog.geometry("400x350")
-        dialog.resizable(False, False)
-        
-        # Center the dialog
-        dialog.update_idletasks()
-        width = dialog.winfo_width()
-        height = dialog.winfo_height()
-        x = (dialog.winfo_screenwidth() // 2) - (width // 2)
-        y = (dialog.winfo_screenheight() // 2) - (height // 2)
-        dialog.geometry(f'{width}x{height}+{x}+{y}')
-        
-        frame = ttk.Frame(dialog, padding="20")
-        frame.pack(expand=True)
-        
-        # Form fields
-        ttk.Label(frame, text="Username:").grid(row=0, column=0, sticky=tk.W, pady=5)
-        username_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=username_var, width=25).grid(row=0, column=1, pady=5)
-        
-        ttk.Label(frame, text="Password:").grid(row=1, column=0, sticky=tk.W, pady=5)
-        password_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=password_var, show="*", width=25).grid(row=1, column=1, pady=5)
-        
-        ttk.Label(frame, text="Email:").grid(row=2, column=0, sticky=tk.W, pady=5)
-        email_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=email_var, width=25).grid(row=2, column=1, pady=5)
-        
-        ttk.Label(frame, text="Role:").grid(row=3, column=0, sticky=tk.W, pady=5)
-        role_var = tk.StringVar(value="user")
-        role_combo = ttk.Combobox(frame, textvariable=role_var, values=["user", "admin"], width=23)
-        role_combo.grid(row=3, column=1, pady=5)
-        
-        def create_user():
-            username = username_var.get().strip()
-            password = password_var.get()
-            email = email_var.get().strip() or None
-            role = role_var.get()
+        """Show add user dialog"""
+        try:
+            AddUserDialog(self)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open add user dialog: {e}")
             
-            if not username or not password:
-                messagebox.showerror("Error", "Username and password are required!")
-                return
-                
-            if len(password) < 4:
-                messagebox.showerror("Error", "Password must be at least 4 characters!")
-                return
-                
-            if main.create_user(username, password, email, role):
-                messagebox.showinfo("Success", f"User '{username}' created successfully!")
-                dialog.destroy()
-                if hasattr(self, 'users_tree'):
-                    self.refresh_users()
-            else:
-                messagebox.showerror("Error", "Failed to create user (username may already exist)!")
-        
-        # Buttons
-        button_frame = ttk.Frame(frame)
-        button_frame.grid(row=4, column=0, columnspan=2, pady=20)
-        
-        ttk.Button(button_frame, text="Create User", command=create_user).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
-        
     def view_users_dialog(self):
+        """Show view users dialog"""
         dialog = tk.Toplevel(self.root)
         dialog.title("Manage Users")
         dialog.geometry("600x400")
@@ -234,7 +114,7 @@ Developed with Python and Tkinter"""
         frame = ttk.Frame(dialog, padding="10")
         frame.pack(fill='both', expand=True)
         
-        ttk.Label(frame, text="Users", font=("Arial", 12, "bold")).pack(pady=5)
+        ttk.Label(frame, text="Users", font=config.DEFAULT_FONT_LABEL).pack(pady=5)
         
         # Treeview for users
         columns = ('ID', 'Username', 'Email', 'Role', 'Created At')
@@ -261,16 +141,17 @@ Developed with Python and Tkinter"""
         self.refresh_users()
         
     def refresh_users(self):
+        """Refresh the users tree view"""
         if hasattr(self, 'users_tree'):
             for item in self.users_tree.get_children():
                 self.users_tree.delete(item)
                 
-            users = main.get_all_users()
+            users = auth.get_all_users()
             for user in users:
                 self.users_tree.insert('', 'end', values=user)
                 
     def create_users_tab(self):
-        # Users Tab (Admin only)
+        """Create the users management tab (admin only)"""
         self.users_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.users_frame, text="Users")
         
@@ -298,7 +179,7 @@ Developed with Python and Tkinter"""
         self.refresh_users()
         
     def create_inventory_tab(self):
-        # Inventory Tab
+        """Create the inventory management tab"""
         self.inventory_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.inventory_frame, text="Inventory")
         
@@ -307,7 +188,7 @@ Developed with Python and Tkinter"""
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
         
         # Form fields
-        ttk.Label(left_frame, text="Inventory Management", font=("Arial", 14, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
+        ttk.Label(left_frame, text="Inventory Management", font=config.DEFAULT_FONT_LABEL).grid(row=0, column=0, columnspan=2, pady=10)
         
         ttk.Label(left_frame, text="Name:").grid(row=1, column=0, sticky=tk.W, pady=5)
         self.item_name_var = tk.StringVar()
@@ -333,14 +214,13 @@ Developed with Python and Tkinter"""
         ttk.Button(button_frame, text="Add Item", command=self.add_item).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Update Item", command=self.update_item).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Delete Item", command=self.delete_item).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="Get All Items", command=self.get_all_items).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Clear Form", command=self.clear_inventory_form).pack(side=tk.LEFT, padx=5)
         
         # Right panel for list
         right_frame = ttk.Frame(self.inventory_frame)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        ttk.Label(right_frame, text="Inventory Items", font=("Arial", 12, "bold")).pack(pady=5)
+        ttk.Label(right_frame, text="Inventory Items", font=config.DEFAULT_FONT_LABEL).pack(pady=5)
         
         # Treeview for inventory
         columns = ('ID', 'Name', 'Category', 'Quantity', 'Price')
@@ -364,28 +244,20 @@ Developed with Python and Tkinter"""
         search_frame = ttk.Frame(right_frame)
         search_frame.pack(fill=tk.X, pady=5)
         
-        # Top row for search label and entry
-        search_top_frame = ttk.Frame(search_frame)
-        search_top_frame.pack(fill=tk.X, pady=2)
-        
-        ttk.Label(search_top_frame, text="Search:").pack(side=tk.LEFT)
+        ttk.Label(search_frame, text="Search:").pack(side=tk.LEFT)
         self.search_var = tk.StringVar()
-        search_entry = ttk.Entry(search_top_frame, textvariable=self.search_var, width=30)
+        search_entry = ttk.Entry(search_frame, textvariable=self.search_var, width=30)
         search_entry.pack(side=tk.LEFT, padx=5)
         
-        # Bottom row for buttons
-        search_bottom_frame = ttk.Frame(search_frame)
-        search_bottom_frame.pack(fill=tk.X, pady=2)
-        
-        ttk.Button(search_bottom_frame, text="Search", command=self.search_inventory).pack(side=tk.LEFT)
-        ttk.Button(search_bottom_frame, text="Refresh", command=self.refresh_inventory).pack(side=tk.LEFT, padx=5)
+        ttk.Button(search_frame, text="Search", command=self.search_inventory).pack(side=tk.LEFT)
+        ttk.Button(search_frame, text="Refresh", command=self.refresh_inventory).pack(side=tk.LEFT, padx=5)
         
         # Load initial data
         self.refresh_inventory()
         self.update_categories_combo()
         
     def create_categories_tab(self):
-        # Categories Tab
+        """Create the categories management tab"""
         self.categories_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.categories_frame, text="Categories")
         
@@ -393,7 +265,7 @@ Developed with Python and Tkinter"""
         left_frame = ttk.Frame(self.categories_frame)
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
         
-        ttk.Label(left_frame, text="Category Management", font=("Arial", 14, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
+        ttk.Label(left_frame, text="Category Management", font=config.DEFAULT_FONT_LABEL).grid(row=0, column=0, columnspan=2, pady=10)
         
         ttk.Label(left_frame, text="Name:").grid(row=1, column=0, sticky=tk.W, pady=5)
         self.category_name_var = tk.StringVar()
@@ -416,7 +288,7 @@ Developed with Python and Tkinter"""
         right_frame = ttk.Frame(self.categories_frame)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        ttk.Label(right_frame, text="Categories", font=("Arial", 12, "bold")).pack(pady=5)
+        ttk.Label(right_frame, text="Categories", font=config.DEFAULT_FONT_LABEL).pack(pady=5)
         
         # Treeview for categories
         columns = ('ID', 'Name', 'Description')
@@ -440,7 +312,7 @@ Developed with Python and Tkinter"""
         self.refresh_categories()
         
     def create_suppliers_tab(self):
-        # Suppliers Tab
+        """Create the suppliers management tab"""
         self.suppliers_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.suppliers_frame, text="Suppliers")
         
@@ -448,7 +320,7 @@ Developed with Python and Tkinter"""
         left_frame = ttk.Frame(self.suppliers_frame)
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
         
-        ttk.Label(left_frame, text="Supplier Management", font=("Arial", 14, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
+        ttk.Label(left_frame, text="Supplier Management", font=config.DEFAULT_FONT_LABEL).grid(row=0, column=0, columnspan=2, pady=10)
         
         fields = [
             ("Name:", "supplier_name_var"),
@@ -477,7 +349,7 @@ Developed with Python and Tkinter"""
         right_frame = ttk.Frame(self.suppliers_frame)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        ttk.Label(right_frame, text="Suppliers", font=("Arial", 12, "bold")).pack(pady=5)
+        ttk.Label(right_frame, text="Suppliers", font=config.DEFAULT_FONT_LABEL).pack(pady=5)
         
         # Treeview for suppliers
         columns = ('ID', 'Name', 'Contact', 'Phone', 'Email', 'Address')
@@ -501,7 +373,7 @@ Developed with Python and Tkinter"""
         self.refresh_suppliers()
         
     def create_transactions_tab(self):
-        # Transactions Tab
+        """Create the transactions management tab"""
         self.transactions_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.transactions_frame, text="Transactions")
         
@@ -509,7 +381,7 @@ Developed with Python and Tkinter"""
         left_frame = ttk.Frame(self.transactions_frame)
         left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=10, pady=10)
         
-        ttk.Label(left_frame, text="Transaction Management", font=("Arial", 14, "bold")).grid(row=0, column=0, columnspan=2, pady=10)
+        ttk.Label(left_frame, text="Transaction Management", font=config.DEFAULT_FONT_LABEL).grid(row=0, column=0, columnspan=2, pady=10)
         
         ttk.Label(left_frame, text="Item:").grid(row=1, column=0, sticky=tk.W, pady=5)
         self.transaction_item_var = tk.StringVar()
@@ -518,7 +390,8 @@ Developed with Python and Tkinter"""
         
         ttk.Label(left_frame, text="Type:").grid(row=2, column=0, sticky=tk.W, pady=5)
         self.transaction_type_var = tk.StringVar()
-        type_combo = ttk.Combobox(left_frame, textvariable=self.transaction_type_var, width=28, values=['IN', 'OUT'])
+        type_combo = ttk.Combobox(left_frame, textvariable=self.transaction_type_var, width=28, 
+                                 values=[config.TRANSACTION_TYPE_IN, config.TRANSACTION_TYPE_OUT])
         type_combo.grid(row=2, column=1, pady=5)
         
         ttk.Label(left_frame, text="Quantity:").grid(row=3, column=0, sticky=tk.W, pady=5)
@@ -545,7 +418,7 @@ Developed with Python and Tkinter"""
         right_frame = ttk.Frame(self.transactions_frame)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        ttk.Label(right_frame, text="Transactions", font=("Arial", 12, "bold")).pack(pady=5)
+        ttk.Label(right_frame, text="Transactions", font=config.DEFAULT_FONT_LABEL).pack(pady=5)
         
         # Treeview for transactions
         columns = ('ID', 'Item', 'Type', 'Quantity', 'Date', 'Notes')
@@ -567,8 +440,9 @@ Developed with Python and Tkinter"""
         self.refresh_transactions()
         self.update_items_combo()
         
-    # Inventory methods
+    # ============ Inventory Methods ============
     def add_item(self):
+        """Add a new inventory item"""
         try:
             name = self.item_name_var.get()
             category = self.item_category_var.get()
@@ -579,7 +453,7 @@ Developed with Python and Tkinter"""
                 messagebox.showerror("Error", "Name and Category are required!")
                 return
             
-            main.add_item(name, category, quantity, price)
+            models.add_item(name, category, quantity, price)
             self.clear_inventory_form()
             self.refresh_inventory()
             self.status_bar.config(text=f"Item '{name}' added successfully!")
@@ -587,6 +461,7 @@ Developed with Python and Tkinter"""
             messagebox.showerror("Error", "Invalid quantity or price!")
             
     def update_item(self):
+        """Update selected inventory item"""
         selected = self.inventory_tree.selection()
         if not selected:
             messagebox.showerror("Error", "Please select an item to update!")
@@ -599,13 +474,12 @@ Developed with Python and Tkinter"""
             quantity = self.item_quantity_var.get()
             price = self.item_price_var.get()
             
-            # Convert to appropriate types or None
             quantity = int(quantity) if quantity else None
             price = float(price) if price else None
             name = name if name else None
             category = category if category else None
             
-            main.update_item(item_id, name, category, quantity, price)
+            models.update_item(item_id, name, category, quantity, price)
             self.clear_inventory_form()
             self.refresh_inventory()
             self.status_bar.config(text=f"Item ID {item_id} updated successfully!")
@@ -613,6 +487,7 @@ Developed with Python and Tkinter"""
             messagebox.showerror("Error", "Invalid quantity or price!")
             
     def delete_item(self):
+        """Delete selected inventory item"""
         selected = self.inventory_tree.selection()
         if not selected:
             messagebox.showerror("Error", "Please select an item to delete!")
@@ -620,45 +495,45 @@ Developed with Python and Tkinter"""
             
         if messagebox.askyesno("Confirm", "Are you sure you want to delete this item?"):
             item_id = self.inventory_tree.item(selected[0])['values'][0]
-            main.delete_item(item_id)
+            models.delete_item(item_id)
             self.clear_inventory_form()
             self.refresh_inventory()
             self.status_bar.config(text=f"Item ID {item_id} deleted successfully!")
             
     def clear_inventory_form(self):
+        """Clear inventory form fields"""
         self.item_name_var.set("")
         self.item_category_var.set("")
         self.item_quantity_var.set("")
         self.item_price_var.set("")
         
     def refresh_inventory(self):
-        # Clear existing items
+        """Refresh inventory tree view"""
         for item in self.inventory_tree.get_children():
             self.inventory_tree.delete(item)
             
-        # Add items
-        items = main.view_items()
+        items = models.view_items()
         for item in items:
             self.inventory_tree.insert('', 'end', values=item)
             
     def search_inventory(self):
+        """Search inventory items"""
         search_term = self.search_var.get().lower()
         if not search_term:
             self.refresh_inventory()
             return
             
-        # Clear existing items
         for item in self.inventory_tree.get_children():
             self.inventory_tree.delete(item)
             
-        # Add filtered items
-        items = main.view_items()
+        items = models.view_items()
         for item in items:
             if (search_term in str(item[1]).lower() or 
                 search_term in str(item[2]).lower()):
                 self.inventory_tree.insert('', 'end', values=item)
                 
     def on_inventory_double_click(self, event):
+        """Handle double click on inventory item"""
         selected = self.inventory_tree.selection()
         if selected:
             item = self.inventory_tree.item(selected[0])['values']
@@ -667,23 +542,9 @@ Developed with Python and Tkinter"""
             self.item_quantity_var.set(item[3])
             self.item_price_var.set(item[4])
             
-    def get_all_items(self):
-        """Display all items from inventory using get_all_items function"""
-        # Clear existing items
-        for item in self.inventory_tree.get_children():
-            self.inventory_tree.delete(item)
-            
-        # Add all items using the get_all_items function
-        items = main.get_all_items()
-        for item in items:
-            self.inventory_tree.insert('', 'end', values=item)
-            
-        # Update status bar
-        item_count = len(items)
-        self.status_bar.config(text=f"Displaying all {item_count} items from inventory")
-            
-    # Category methods
+    # ============ Category Methods ============
     def add_category(self):
+        """Add a new category"""
         name = self.category_name_var.get()
         description = self.category_desc_var.get()
         
@@ -691,13 +552,14 @@ Developed with Python and Tkinter"""
             messagebox.showerror("Error", "Category name is required!")
             return
             
-        main.add_category(name, description)
+        models.add_category(name, description)
         self.clear_category_form()
         self.refresh_categories()
         self.update_categories_combo()
         self.status_bar.config(text=f"Category '{name}' added successfully!")
         
     def update_category(self):
+        """Update selected category"""
         selected = self.categories_tree.selection()
         if not selected:
             messagebox.showerror("Error", "Please select a category to update!")
@@ -710,13 +572,14 @@ Developed with Python and Tkinter"""
         name = name if name else None
         description = description if description else None
         
-        main.update_category(category_id, name, description)
+        models.update_category(category_id, name, description)
         self.clear_category_form()
         self.refresh_categories()
         self.update_categories_combo()
         self.status_bar.config(text=f"Category ID {category_id} updated successfully!")
         
     def delete_category(self):
+        """Delete selected category"""
         selected = self.categories_tree.selection()
         if not selected:
             messagebox.showerror("Error", "Please select a category to delete!")
@@ -724,33 +587,37 @@ Developed with Python and Tkinter"""
             
         if messagebox.askyesno("Confirm", "Are you sure you want to delete this category?"):
             category_id = self.categories_tree.item(selected[0])['values'][0]
-            main.delete_category(category_id)
+            models.delete_category(category_id)
             self.clear_category_form()
             self.refresh_categories()
             self.update_categories_combo()
             self.status_bar.config(text=f"Category ID {category_id} deleted successfully!")
             
     def clear_category_form(self):
+        """Clear category form fields"""
         self.category_name_var.set("")
         self.category_desc_var.set("")
         
     def refresh_categories(self):
+        """Refresh categories tree view"""
         for item in self.categories_tree.get_children():
             self.categories_tree.delete(item)
             
-        categories = main.view_categories()
+        categories = models.view_categories()
         for category in categories:
             self.categories_tree.insert('', 'end', values=category)
             
     def on_category_double_click(self, event):
+        """Handle double click on category"""
         selected = self.categories_tree.selection()
         if selected:
             category = self.categories_tree.item(selected[0])['values']
             self.category_name_var.set(category[1])
             self.category_desc_var.set(category[2] if category[2] else "")
             
-    # Supplier methods
+    # ============ Supplier Methods ============
     def add_supplier(self):
+        """Add a new supplier"""
         name = self.supplier_name_var.get()
         contact = self.supplier_contact_var.get()
         phone = self.supplier_phone_var.get()
@@ -761,12 +628,13 @@ Developed with Python and Tkinter"""
             messagebox.showerror("Error", "Supplier name is required!")
             return
             
-        main.add_supplier(name, contact, phone, email, address)
+        models.add_supplier(name, contact, phone, email, address)
         self.clear_supplier_form()
         self.refresh_suppliers()
         self.status_bar.config(text=f"Supplier '{name}' added successfully!")
         
     def update_supplier(self):
+        """Update selected supplier"""
         selected = self.suppliers_tree.selection()
         if not selected:
             messagebox.showerror("Error", "Please select a supplier to update!")
@@ -779,13 +647,14 @@ Developed with Python and Tkinter"""
         email = self.supplier_email_var.get()
         address = self.supplier_address_var.get()
         
-        main.update_supplier(supplier_id, name or None, contact or None, phone or None, 
+        models.update_supplier(supplier_id, name or None, contact or None, phone or None, 
                            email or None, address or None)
         self.clear_supplier_form()
         self.refresh_suppliers()
         self.status_bar.config(text=f"Supplier ID {supplier_id} updated successfully!")
         
     def delete_supplier(self):
+        """Delete selected supplier"""
         selected = self.suppliers_tree.selection()
         if not selected:
             messagebox.showerror("Error", "Please select a supplier to delete!")
@@ -793,12 +662,13 @@ Developed with Python and Tkinter"""
             
         if messagebox.askyesno("Confirm", "Are you sure you want to delete this supplier?"):
             supplier_id = self.suppliers_tree.item(selected[0])['values'][0]
-            main.delete_supplier(supplier_id)
+            models.delete_supplier(supplier_id)
             self.clear_supplier_form()
             self.refresh_suppliers()
             self.status_bar.config(text=f"Supplier ID {supplier_id} deleted successfully!")
             
     def clear_supplier_form(self):
+        """Clear supplier form fields"""
         self.supplier_name_var.set("")
         self.supplier_contact_var.set("")
         self.supplier_phone_var.set("")
@@ -806,14 +676,16 @@ Developed with Python and Tkinter"""
         self.supplier_address_var.set("")
         
     def refresh_suppliers(self):
+        """Refresh suppliers tree view"""
         for item in self.suppliers_tree.get_children():
             self.suppliers_tree.delete(item)
             
-        suppliers = main.view_suppliers()
+        suppliers = models.view_suppliers()
         for supplier in suppliers:
             self.suppliers_tree.insert('', 'end', values=supplier)
             
     def on_supplier_double_click(self, event):
+        """Handle double click on supplier"""
         selected = self.suppliers_tree.selection()
         if selected:
             supplier = self.suppliers_tree.item(selected[0])['values']
@@ -823,8 +695,9 @@ Developed with Python and Tkinter"""
             self.supplier_email_var.set(supplier[4] if supplier[4] else "")
             self.supplier_address_var.set(supplier[5] if supplier[5] else "")
             
-    # Transaction methods
+    # ============ Transaction Methods ============
     def add_transaction(self):
+        """Add a new transaction"""
         try:
             item_name = self.transaction_item_var.get()
             trans_type = self.transaction_type_var.get()
@@ -837,7 +710,7 @@ Developed with Python and Tkinter"""
                 return
                 
             # Get item ID from name
-            items = main.view_items()
+            items = models.view_items()
             item_id = None
             for item in items:
                 if item[1] == item_name:
@@ -848,15 +721,16 @@ Developed with Python and Tkinter"""
                 messagebox.showerror("Error", "Item not found!")
                 return
                 
-            main.add_transaction(item_id, trans_type, quantity, date, notes)
+            models.add_transaction(item_id, trans_type, quantity, date, notes)
             self.clear_transaction_form()
             self.refresh_transactions()
-            self.refresh_inventory()  # Update inventory to reflect quantity changes
+            self.refresh_inventory()
             self.status_bar.config(text="Transaction added successfully!")
         except ValueError:
             messagebox.showerror("Error", "Invalid quantity!")
             
     def clear_transaction_form(self):
+        """Clear transaction form fields"""
         self.transaction_item_var.set("")
         self.transaction_type_var.set("")
         self.transaction_quantity_var.set("")
@@ -864,57 +738,58 @@ Developed with Python and Tkinter"""
         self.transaction_notes_var.set("")
         
     def refresh_transactions(self):
+        """Refresh transactions tree view"""
         for item in self.transactions_tree.get_children():
             self.transactions_tree.delete(item)
             
-        transactions = main.view_transactions()
+        transactions = models.view_transactions()
         for trans in transactions:
             self.transactions_tree.insert('', 'end', values=(trans[0], trans[6], trans[2], trans[3], trans[4], trans[5] or ""))
             
     def update_categories_combo(self):
-        categories = main.view_categories()
+        """Update categories dropdown list"""
+        categories = models.view_categories()
         category_names = [cat[1] for cat in categories]
         self.category_combo['values'] = category_names
         
     def update_items_combo(self):
-        items = main.view_items()
+        """Update items dropdown list"""
+        items = models.view_items()
         item_names = [item[1] for item in items]
         self.transaction_item_combo['values'] = item_names
-
-if __name__ == "__main__":
-    # Initialize database and create admin user if needed
-    main.init_db()
-    main.create_categories_table()
-    main.create_suppliers_table()
-    main.create_transactions_table()
-    main.create_users_table()
-    
-    # Check if any users exist
-    users = main.get_all_users()
-    if not users:
-        # Create first admin user
-        setup_root = tk.Tk()
-        setup_root.withdraw()  # Hide the main window
         
-        username = simpledialog.askstring("First Time Setup", "Enter admin username:")
-        if username:
-            password = simpledialog.askstring("First Time Setup", "Enter admin password:", show='*')
-            if password and len(password) >= 4:
-                email = simpledialog.askstring("First Time Setup", "Enter admin email (optional):")
-                if main.create_user(username, password, email, 'admin'):
-                    messagebox.showinfo("Success", f"Admin user '{username}' created successfully!")
-                else:
-                    messagebox.showerror("Error", "Failed to create admin user!")
-        
-        setup_root.destroy()
-    
-    # Show login window
-    root = tk.Tk()
-    login_window = LoginWindow(root)
-    root.mainloop()
-    
-    # If login successful, show main application
-    if login_window.authenticated_user:
-        main_root = tk.Tk()
-        app = InventoryManagementGUI(main_root, login_window.authenticated_user)
-        main_root.mainloop()
+    def clear_all_data(self):
+        """Clear all data from database with confirmation"""
+        # First confirmation
+        if not messagebox.askyesno("Confirm Clear Data", 
+                                  "⚠️ WARNING: This will delete ALL data including:\n\n"
+                                  "• All inventory items\n"
+                                  "• All categories\n"
+                                  "• All suppliers\n"
+                                  "• All transactions\n"
+                                  "• All users (except you will be logged out)\n\n"
+                                  "This action cannot be undone!\n\n"
+                                  "Do you want to continue?"):
+            return
+            
+        # Second confirmation with password
+        password = messagebox.askstring("Final Confirmation", 
+                                       "Please type 'DELETE' to confirm permanent data deletion:")
+        if password != "DELETE":
+            messagebox.showerror("Cancelled", "Data deletion cancelled.")
+            return
+            
+        try:
+            # Clear all data
+            models.clear_all_data()
+            
+            # Show success message
+            messagebox.showinfo("Success", "All data has been cleared successfully!\n\n"
+                                             "The application will now exit.\n"
+                                             "Please restart to create a fresh database.")
+            
+            # Logout and exit
+            self.root.destroy()
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to clear data: {str(e)}")

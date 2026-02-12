@@ -1,6 +1,8 @@
-# Metlab Supermarket Inventory Management System
+# Inventory Management System v2.0
 
-A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces with secure user authentication. Designed for Metlab Supermarket operations.
+A comprehensive inventory management system built with Python and SQLite, featuring a modern graphical user interface with secure user authentication and role-based access control.
+
+**Refactored with modular architecture for improved maintainability, testability, and scalability.**
 
 ## 🚀 Features
 
@@ -19,11 +21,18 @@ A comprehensive supermarket inventory management system built with Python and SQ
 - **Session Management**: Secure login/logout functionality
 - **First-Time Setup**: Automatic admin account creation on first run
 
+### 🧪 Testing Suite
+- **Comprehensive Tests**: 17 test cases covering all major functionality
+- **Unit Testing**: Isolated tests for database, authentication, and validation
+- **Automated Testing**: One-command test execution
+- **Test Coverage**: Database operations, user authentication, input validation
+- **CI/CD Ready**: Suitable for continuous integration pipelines
+
 ### User Interfaces
-- **Console Interface**: Traditional command-line interface (`main.py`) - IDE-friendly version
-- **Graphical Interface**: Modern GUI with tabbed layout (`gui.py`) with full authentication
-- **Dual Access**: Both interfaces share the same database and authentication
-- **Cross-Platform Compatibility**: Works in IDE terminals and system terminals
+- **Graphical Interface (GUI)**: Modern tabbed interface with full authentication
+- **Cross-Platform Compatibility**: Works on Windows, macOS, and Linux
+- **Responsive Design**: Clean, organized layout with status bar and menu system
+- **Admin Features**: Database management and user administration tools
 
 ## 📋 System Requirements
 
@@ -33,75 +42,93 @@ A comprehensive supermarket inventory management system built with Python and SQ
 
 ## 🛠️ Installation
 
-1. **Clone the repository**
+1. **Clone/Download the project**
    ```bash
-   git clone <repository-url>
    cd "INVENTORY MANAGEMENT SYSTEM 2"
    ```
 
 2. **Verify Python installation**
    ```bash
-   python --version
+   python --version  # Requires Python 3.7 or higher
    ```
 
-3. **Install dependencies** (if needed)
-   ```bash
-   pip install tk
-   ```
+3. **No external packages required** - Uses only Python standard library
+   - `tkinter` (included with Python)
+   - `sqlite3` (included with Python)
+   - `hashlib` (included with Python)
 
 ## 🎯 Quick Start
 
-### First Time Setup
-The first time you run either interface, you'll be prompted to create an admin account:
-
-**GUI Setup (Recommended):**
-```bash
-python gui.py
-```
-- Follow the prompts to create the first admin user
-- Use the modern login window to access the system
-- Full graphical interface with user management
-
-**Console Setup:**
+**Start the application:**
 ```bash
 python main.py
 ```
-- Follow the console prompts to create the first admin user
-- Login with your credentials
-- IDE-friendly version (passwords visible in development)
 
-### Development vs Production
+**On first run:**
+1. A setup dialog will prompt you to create the first admin user
+2. Enter admin username, password, email (optional), and role
+3. Login with your credentials
+4. Full GUI interface will launch
 
-#### Development (IDE Terminals)
-```bash
-python main.py
+The `inventory.db` database file is created automatically on first run.
+
+## 📁 Project Structure
+
 ```
-- ✅ Works in any IDE terminal (VS Code, PyCharm, etc.)
-- ⚠️ Passwords visible during input
-- ✅ Full functionality maintained
-
-#### Production (System Terminals)
-```bash
-# Use Command Prompt or PowerShell for secure password input
-python main_backup_secure.py
+├── main.py ............................ Entry point
+├── config.py .......................... Constants and configuration
+├── database/
+│   ├── __init__.py
+│   └── models.py ...................... All database operations
+├── auth/
+│   ├── __init__.py
+│   └── auth.py ........................ Authentication logic
+├── ui/
+│   ├── __init__.py
+│   ├── login.py ....................... Login window
+│   ├── windows.py ..................... Main application window
+│   └── dialogs.py ..................... Dialog windows
+├── utils/
+│   ├── __init__.py
+│   └── validators.py .................. Input validation
+├── tests/
+│   ├── test_models.py ................ Database operations tests
+│   ├── test_auth.py ................. Authentication tests
+│   ├── test_validators.py .......... Validation tests
+│   ├── run_all_tests.py ............ Test runner script
+│   └── README.md ................. Testing documentation
+├── requirements-dev.txt .............. Development dependencies
+├── inventory.db ....................... SQLite database (auto-created)
+└── README.md
 ```
-- ✅ Passwords hidden during input
-- ✅ Production-ready security
-- ✅ Same functionality
+
+### Module Responsibilities
+
+| Module | Purpose |
+|--------|---------|
+| `config.py` | Centralized configuration, constants, UI settings |
+| `database/models.py` | Database operations (CRUD for all entities) |
+| `auth/auth.py` | User authentication, password hashing, user management |
+| `ui/login.py` | Login window interface |
+| `ui/windows.py` | Main application window and tab management |
+| `ui/dialogs.py` | Modal dialogs (user management, etc.) |
+| `utils/validators.py` | Input validation for all forms |
+| `tests/` | Comprehensive test suite for all modules |
 
 ### User Roles
 
 #### Admin Users
 - Full access to all inventory features
 - **User Management**: Create, view, and manage user accounts
-- **System Administration**: Complete control over the system
-- **GUI Access**: Additional "Users" tab and menu options
+- **System Administration**: Complete control over system including database operations
+- **GUI Access**: Additional "Users" tab and "Database" menu options
+- **Data Management**: Ability to clear all database data with confirmation
 
 #### Regular Users
 - Standard inventory management features
 - Can add, update, and view inventory items
 - Can manage categories, suppliers, and transactions
-- **Limited Access**: Cannot manage user accounts
+- **Limited Access**: Cannot manage user accounts or access database administration
 
 ## 📊 Database Schema
 
@@ -186,196 +213,332 @@ python main_backup_secure.py
 - **User Information**: View username, email, role, and creation date
 - **Account Creation**: Dialog for adding new users with validation
 
-## 💻 Console Interface
+## 💻 Console Interface (Legacy)
 
-The console interface provides the same functionality through a menu-driven system with authentication:
+The old console interface from the original version is no longer the primary interface. The system now focuses on the modern GUI application. However, the core functionality remains:
 
-```
-=== LOGIN ===
-Note: Password will be visible (IDE terminal mode)
-Username: [your_username]
-Password: [your_password]
+- User authentication
+- Inventory management
+- Category and supplier management
+- Transaction tracking
+- Role-based user management
 
-Metlab Supermarket Inventory Management System
-Logged in as: [username] ([role])
-=== INVENTORY MANAGEMENT ===
-1. Add Item
-2. View Items
-3. Update Item
-4. Delete Item
+For development and testing of individual modules:
+```python
+# Import modules directly
+from database import models
+from auth import auth
+from utils import validators
 
-=== CATEGORY MANAGEMENT ===
-5. Add Category
-6. View Categories
-7. Update Category
-8. Delete Category
-
-=== SUPPLIER MANAGEMENT ===
-9. Add Supplier
-10. View Suppliers
-11. Update Supplier
-12. Delete Supplier
-
-=== TRANSACTION MANAGEMENT ===
-13. Add Transaction
-14. View All Transactions
-15. View Item Transactions
-
-=== USER MANAGEMENT === (Admin only)
-16. Add User
-17. View Users
-18. Logout
-19. Exit
+# Test database operations
+models.add_item("Test Item", "Test Category", 10, 9.99)
+items = models.view_items()
 ```
 
-### Console Features
-- **IDE-Friendly**: Works in VS Code, PyCharm, and other IDE terminals
-- **Visible Passwords**: Development-friendly (passwords shown during input)
-- **Full Functionality**: All inventory management features available
-- **User Management**: Admin can create and manage users
-- **Role-Based Access**: Different menus for admin vs regular users
+## 🔧 Technical Architecture
 
-## 🔧 Technical Details
+### Architecture Pattern
+The system follows a **modular, layered architecture** for better maintainability:
 
-### Authentication Security
-- **Password Hashing**: SHA-256 algorithm for secure password storage
-- **Input Validation**: Proper validation for usernames and passwords
-- **Session Management**: Secure login/logout functionality
-- **Role-Based Access**: Different permissions for admin and regular users
+**Layers:**
+1. **Configuration Layer** (`config.py`) - All constants and settings
+2. **Data Layer** (`database/models.py`) - Database operations
+3. **Authentication Layer** (`auth/auth.py`) - User authentication
+4. **Business Logic** - Integrated with data layer
+5. **Presentation Layer** (`ui/`) - GUI components
+6. **Utilities** (`utils/`) - Helper functions
 
-### Architecture
-- **Backend**: Python with SQLite3
-- **Frontend**: tkinter for GUI
-- **Database**: SQLite (`inventory.db`)
-- **Design Pattern**: Modular functions with clear separation of concerns
+### Technology Stack
+- **Language**: Python 3.7+
+- **GUI Framework**: tkinter
+- **Database**: SQLite
+- **Security**: SHA-256 password hashing
+- **Architecture**: Modular with separation of concerns
 
-### Key Files
-- `main.py` - Core business logic, authentication, and IDE-friendly console interface
-- `main_backup_secure.py` - Original secure version with hidden passwords (for production)
-- `gui.py` - Graphical user interface with full authentication
-- `inventory.db` - SQLite database (created automatically)
+### Design Principles
+- ✅ **Single Responsibility** - Each module has one clear purpose
+- ✅ **DRY (Don't Repeat Yourself)** - Code reusability
+- ✅ **Separation of Concerns** - UI, data, and auth are separate
+- ✅ **Testability** - Modules can be tested independently
+- ✅ **Maintainability** - Easy to find and modify code
+- ✅ **Scalability** - Easy to add new features
 
-### Error Handling
-- Input validation for all forms
-- SQL injection protection with parameterized queries
-- Graceful error handling for database operations
-- User-friendly error messages
-- Authentication failure handling
+### Key Files & Their Roles
+- `main.py` - Application entry point (35 lines)
+- `config.py` - Configuration and constants (40 lines)
+- `database/models.py` - All database operations (280 lines)
+- `auth/auth.py` - Authentication and user management (50 lines)
+- `ui/login.py` - Login window (65 lines)
+- `ui/windows.py` - Main application window (680 lines)
+- `ui/dialogs.py` - Dialog windows (50 lines)
+- `utils/validators.py` - Input validation (45 lines)
+- `inventory.db` - SQLite database (auto-created on first run)
+
+## 🧪 Testing
+
+### Running Tests
+Execute the complete test suite with a single command:
+```bash
+python tests/run_all_tests.py
+```
+
+### Test Coverage
+The test suite includes 17 comprehensive test cases:
+
+**Database Tests (`test_models.py`)**
+- ✅ CRUD operations for inventory items
+- ✅ Category and supplier management
+- ✅ Transaction logging with foreign key relationships
+- ✅ Data integrity and constraints
+
+**Authentication Tests (`test_auth.py`)**
+- ✅ User creation and validation
+- ✅ Password hashing and verification
+- ✅ User authentication and session management
+- ✅ Duplicate user prevention
+
+**Validation Tests (`test_validators.py`)**
+- ✅ Input validation for all forms
+- ✅ Data type validation
+- ✅ Required field validation
+- ✅ Error handling for invalid inputs
+
+### Running Individual Tests
+```bash
+# Test specific modules
+python -m unittest tests.test_models
+python -m unittest tests.test_auth
+python -m unittest tests.test_validators
+
+# Test specific methods
+python -m unittest tests.test_models.TestDatabaseModels.test_add_item
+```
+
+### Test Features
+- **Isolated Testing**: Uses temporary databases, won't affect production data
+- **Comprehensive Coverage**: Tests success, failure, and edge cases
+- **CI/CD Ready**: Suitable for automated testing pipelines
+- **Fast Execution**: Optimized for quick development feedback
 
 ## 📝 Usage Examples
 
-**First-Time Admin Setup**
-1. Run `python gui.py` or `python main.py`
-2. Follow the prompts to create an admin account
-3. Login with your new admin credentials
+### Starting the Application
+```bash
+python main.py
+```
 
-### Adding a User (Admin Only)
-**GUI:**
+This will:
+1. Initialize the database with all required tables
+2. Prompt for admin creation on first run
+3. Display the login window
+4. Launch the main application after successful login
+
+### Importing Modules (Advanced Usage)
+
+**Add an item to inventory:**
+```python
+from database import models
+models.add_item("Laptop", "Electronics", 5, 999.99)
+```
+
+**Authenticate a user:**
+```python
+from auth import auth
+user = auth.authenticate_user("admin", "password123")
+if user:
+    print(f"Logged in as: {user['username']}")
+```
+
+**Create a new user (admin only):**
+```python
+from auth import auth
+success = auth.create_user("newuser", "password123", "user@example.com", "user")
+if success:
+    print("User created successfully!")
+```
+
+**Get all items:**
+```python
+from database import models
+items = models.view_items()
+for item in items:
+    print(f"{item[1]} - Qty: {item[3]}, Price: ${item[4]}")
+```
+
+### Adding an Item (GUI)
+1. Launch the application: `python main.py`
+2. Login with your credentials
+3. Navigate to the **Inventory** tab
+4. Fill in the form fields (name, category, quantity, price)
+5. Click "Add Item"
+
+### Managing Users (Admin Only - GUI)
 1. Login as admin
-2. Go to Users tab or menu → Add User
+2. Click **Users** menu → "Add User"
 3. Fill in username, password, email, and role
 4. Click "Create User"
 
-**Console:**
-1. Login as admin
-2. Select option 16 (Add User)
-3. Enter user details when prompted
-4. Note: Password will be visible in IDE terminal mode
-
-### Adding an Item (GUI)
-1. Navigate to the Inventory tab
-2. Fill in the form fields (name, category, quantity, price)
-3. Click "Add Item"
-
-### Adding a Transaction (Console)
-1. Login to the system
-2. Select option 13 (Add Transaction)
-3. Enter item ID, transaction type (IN/OUT), quantity, and date
-4. Add optional notes
-
 ### Searching Items (GUI)
-1. In the Inventory tab, use the search box
-2. Type item name or category
-3. Click "Search" to filter results
+1. In the **Inventory** tab, enter search term in the search box
+2. Search by item name or category
+3. Click "Search" or "Refresh" to reset
 
-### Development Workflow
-**For development in IDE terminals:**
-```bash
-python main.py  # IDE-friendly version
+### Managing Suppliers (GUI)
+1. Navigate to the **Suppliers** tab
+2. Add supplier information or update existing suppliers
+3. Double-click a row to populate the form for editing
+
+## .gitignore Recommendations
+
+When version controlling this project, add the following to `.gitignore`:
+
+```
+# Database file (created automatically)
+inventory.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Virtual environments
+venv/
+env/
 ```
 
-**For production deployment:**
-```bash
-python main_backup_secure.py  # Secure version with hidden passwords
+## 🔄 Module Integration
+
+The modular architecture allows for seamless integration:
+
+```python
+# Example: Complete workflow
+from database import models
+from auth import auth
+
+# Create a user
+auth.create_user("john", "pass123", "john@example.com", "user")
+
+# Authenticate
+user = auth.authenticate_user("john", "pass123")
+
+# If authenticated, add inventory items
+if user:
+    models.add_item("Widget A", "Hardware", 50, 29.99)
+    models.add_category("Hardware", "Hardware products")
 ```
-
-## 🔄 Data Synchronization
-
-Both interfaces share the same database and authentication system:
-- Seamless switching between GUI and console
-- Real-time data updates across interfaces
-- Consistent user authentication across both interfaces
-- Shared user accounts and roles
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-**Login Issues:**
-- Ensure correct username and password
-- Check if user account exists (admin can view users)
-- Passwords are case-sensitive
-- For IDE terminals: Passwords will be visible during input
+**Application won't start:**
+- Check Python version: `python --version` (requires 3.7+)
+- Ensure you're in the correct directory
+- Make sure tkinter is available: `python -c "import tkinter"` (usually included)
 
-**GUI won't open:**
-- Ensure tkinter is installed: `pip install tk`
-- Check Python version compatibility (3.7+ required)
+**GUI won't display:**
+- Linux: Install tkinter: `sudo apt-get install python3-tk`
+- macOS: Should be included with Python; try reinstalling Python
+- Windows: Check if tkinter is included in Python installation
 
-**Console Input Issues:**
-- **IDE Terminals**: Use `python main.py` (passwords visible)
-- **System Terminals**: Use `python main_backup_secure.py` (passwords hidden)
-- **VS Code/PyCharm**: Console version works with visible passwords
+**Login issues:**
+- Ensure you created an admin user on first run
+- Username and password are case-sensitive
+- Check that the database file (`inventory.db`) exists
 
 **Database errors:**
 - Ensure write permissions in the project directory
-- Check if `inventory.db` is not locked by another process
+- Delete `inventory.db` to start fresh (will create new on next run)
+- Check if database file is not locked by another process
 
-**First-time setup issues:**
-- Ensure admin username is at least 1 character
-- Password must be at least 4 characters
-- Check database write permissions
-- Try running in system terminal if IDE setup fails
+**Import errors:**
+- Verify all `.py` files and folders are present
+- Check that `__init__.py` files exist in all package directories
+- Ensure you're running from the project root directory
 
-### Getting Help
+**Port or permission issues:**
+- Run with administrator/sudo if you encounter permission errors
+- Check that the project directory is not read-only
 
-1. Check the error messages carefully
-2. Ensure all requirements are met
-3. Verify file permissions and directory structure
-4. Check if users table exists in database
+### Testing Modules Independently
+
+Test individual modules without starting the GUI:
+
+```bash
+# Test database initialization
+python -c "from database import models; models.init_db(); print('✓ DB initialized')"
+
+# Test authentication
+python -c "from auth import auth; print('✓ Auth module loaded')"
+
+# Test validators
+python -c "from utils import validators; print('✓ Validators loaded')"
+```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit issues and enhancement requests.
+Contributions are welcome! The modular structure makes it easy to contribute:
 
 ### Development Setup
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly (both GUI and console interfaces)
-5. Test in both IDE terminals and system terminals
+1. Fork or clone the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes in the appropriate module
+4. Test your changes thoroughly
+5. Commit with clear messages
 6. Submit a pull request
+
+### Adding New Features
+
+**New database operations?**
+- Add functions to `database/models.py`
+
+**New authentication feature?**
+- Add to `auth/auth.py`
+
+**New UI component?**
+- Create in appropriate file in `ui/`
+
+**New validation rules?**
+- Add to `utils/validators.py`
+
+## 📚 Further Improvements
+
+Future enhancements could include:
+- Advanced user management and roles
+- Inventory analytics and reporting
+- Multi-user collaboration features
+- Backup and restore functionality
+- Logging and audit trails
+- ✅ **Unit tests for each module** (COMPLETED)
+- REST API endpoints
+- Configuration file support
+- Data export/import functionality
+- Barcode scanning integration
+- Multi-location inventory tracking
 
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 📞 Support
+## 📞 Support & Documentation
 
-For support and questions:
-- Create an issue in the repository
-- Check existing issues for solutions
-- Review the documentation carefully
+- See `REFACTORING_SUMMARY.md` for detailed information about the modular architecture
+- Check `tests/README.md` for comprehensive testing documentation
+- Review individual module docstrings for function-level documentation
+- Check `config.py` for all available configuration options
 
 ---
 
-**Built with ❤️ for Metlab Supermarket using Python, SQLite, and Tkinter**
+**Built with ❤️ using Python, SQLite, and Tkinter**
+
+**Current Structure:** Modular Architecture (v2.0 Refactored)  
+**Last Updated:** February 2026  
+**Test Coverage:** 17 comprehensive test cases ✅
