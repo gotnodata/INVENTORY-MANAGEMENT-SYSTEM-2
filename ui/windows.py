@@ -140,6 +140,41 @@ Developed with Python and Tkinter"""
         
         self.refresh_users()
         
+    def delete_user(self):
+        """Delete selected user"""
+        selected = self.users_tree.selection()
+        if not selected:
+            messagebox.showerror("Error", "Please select a user to delete!")
+            return
+            
+        user_data = self.users_tree.item(selected[0])['values']
+        user_id = user_data[0]
+        username = user_data[1]
+        role = user_data[3]
+        
+        # Prevent self-deletion
+        if user_id == self.current_user['id']:
+            messagebox.showerror("Error", "You cannot delete your own account!")
+            return
+            
+        # Confirm deletion
+        confirm_message = f"Are you sure you want to delete user '{username}'?\n\n"
+        confirm_message += f"Username: {username}\n"
+        confirm_message += f"Role: {role}\n\n"
+        confirm_message += "This action cannot be undone!"
+        
+        if not messagebox.askyesno("Confirm Delete User", confirm_message):
+            return
+            
+        # Delete user
+        success, message = auth.delete_user(user_id)
+        
+        if success:
+            messagebox.showinfo("Success", message)
+            self.refresh_users()
+        else:
+            messagebox.showerror("Error", message)
+                
     def refresh_users(self):
         """Refresh the users tree view"""
         if hasattr(self, 'users_tree'):
@@ -160,6 +195,7 @@ Developed with Python and Tkinter"""
         button_frame.pack(pady=10)
         
         ttk.Button(button_frame, text="Add User", command=self.show_add_user_dialog).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Delete User", command=self.delete_user).pack(side=tk.LEFT, padx=5)
         ttk.Button(button_frame, text="Refresh", command=self.refresh_users).pack(side=tk.LEFT, padx=5)
         
         # Treeview for users

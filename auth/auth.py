@@ -48,6 +48,32 @@ def authenticate_user(username, password):
     return None
 
 
+def delete_user(user_id):
+    """Delete a user account"""
+    conn = models.get_connection()
+    c = conn.cursor()
+    
+    # Prevent deletion of the last admin user
+    c.execute('SELECT COUNT(*) FROM users WHERE role = ?', (config.ROLE_ADMIN,))
+    admin_count = c.fetchone()[0]
+    
+    c.execute('SELECT role FROM users WHERE id = ?', (user_id,))
+    user_role = c.fetchone()
+    
+    if user_role and user_role[0] == config.ROLE_ADMIN and admin_count <= 1:
+        conn.close()
+        return False, "Cannot delete the last admin user!"
+    
+    try:
+        c.execute('DELETE FROM users WHERE id = ?', (user_id,))
+        conn.commit()
+        conn.close()
+        return True, "User deleted successfully!"
+    except Exception as e:
+        conn.close()
+        return False, f"Failed to delete user: {str(e)}"
+
+
 def get_all_users():
     """Get all users (for admin purposes)"""
     conn = models.get_connection()
