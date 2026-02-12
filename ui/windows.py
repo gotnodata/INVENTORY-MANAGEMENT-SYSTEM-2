@@ -474,10 +474,11 @@ Developed with Python and Tkinter"""
             quantity = self.item_quantity_var.get()
             price = self.item_price_var.get()
             
+            # Handle empty strings vs None values
+            name = name if name.strip() else None
+            category = category if category.strip() else None
             quantity = int(quantity) if quantity else None
             price = float(price) if price else None
-            name = name if name else None
-            category = category if category else None
             
             models.update_item(item_id, name, category, quantity, price)
             self.clear_inventory_form()
