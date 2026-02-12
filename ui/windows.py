@@ -286,7 +286,6 @@ Developed with Python and Tkinter"""
         search_entry.pack(side=tk.LEFT, padx=5)
         
         ttk.Button(search_frame, text="Search", command=self.search_inventory).pack(side=tk.LEFT)
-        ttk.Button(search_frame, text="Refresh", command=self.refresh_inventory).pack(side=tk.LEFT, padx=5)
         
         # Load initial data
         self.refresh_inventory()
