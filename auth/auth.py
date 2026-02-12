@@ -1,6 +1,7 @@
 import hashlib
 from datetime import datetime
 from database import models
+import config
 
 
 def hash_password(password):
