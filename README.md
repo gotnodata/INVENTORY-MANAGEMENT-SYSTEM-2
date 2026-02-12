@@ -1,8 +1,6 @@
-# Inventory Management System v2.0
+Inventory Management System
 
-A comprehensive inventory management system built with Python and SQLite, featuring a modern graphical user interface with secure user authentication and role-based access control.
-
-**Refactored with modular architecture for improved maintainability, testability, and scalability.**
+A comprehensive supermarket inventory management system built with Python and SQLite, featuring both console and graphical user interfaces with secure user authentication. 
 
 ## 🚀 Features
 
