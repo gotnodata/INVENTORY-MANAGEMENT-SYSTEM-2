@@ -1,4 +1,4 @@
-# Configuration and Constants for Inventory Management System.
+# Configuration settings and Constants for Inventory Management System.
 # Controls the systems behavior.
 
 # Database Configuration
