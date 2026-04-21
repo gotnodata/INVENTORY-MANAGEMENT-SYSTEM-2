@@ -1,8 +1,6 @@
-# Inventory Management System v2.0
+Inventory Management System
 
-A comprehensive inventory management system built with Python and SQLite, featuring a modern graphical user interface with secure user authentication and role-based access control.
-
-**Refactored with modular architecture for improved maintainability, testability, and scalability.**
+A comprehensive supermarket inventory management system built with Python and SQLite, featuring a graphical user interface with secure user authentication. 
 
 ## 🚀 Features
 
@@ -75,7 +73,7 @@ The `inventory.db` database file is created automatically on first run.
 ## 📁 Project Structure
 
 ```
-├── main.py ............................ Entry point
+├── main.py ............................ Application entry point
 ├── config.py .......................... Constants and configuration
 ├── database/
 │   ├── __init__.py
@@ -106,6 +104,7 @@ The `inventory.db` database file is created automatically on first run.
 
 | Module | Purpose |
 |--------|---------|
+| `main.py` | Application entry point |
 | `config.py` | Centralized configuration, constants, UI settings |
 | `database/models.py` | Database operations (CRUD for all entities) |
 | `auth/auth.py` | User authentication, password hashing, user management |
@@ -168,7 +167,44 @@ The `inventory.db` database file is created automatically on first run.
 - `date` - Transaction date
 - `notes` - Optional notes
 
-## 🖥️ GUI Features
+## � Console Interface
+
+The system includes a full-featured console interface for users who prefer command-line interaction or need to work in terminal environments.
+
+### Console Features
+- **Complete Functionality**: All features available in GUI are also in console
+- **Role-Based Access**: Admin and regular user menus
+- **Secure Authentication**: Password input is hidden during login
+- **Interactive Menus**: Easy-to-navigate numbered menu system
+- **Data Validation**: Input validation with error handling
+- **First-Time Setup**: Automatic admin account creation
+
+### Console vs GUI
+| Feature | Console | GUI |
+|---------|---------|------|
+| Inventory Management | ✅ | ✅ |
+| Category Management | ✅ | ✅ |
+| Supplier Management | ✅ | ✅ |
+| Transaction Tracking | ✅ | ✅ |
+| User Management | ✅ | ✅ |
+| Search & Filter | ✅ | ✅ |
+| Data Visualization | ❌ | ✅ |
+| Mouse Interaction | ❌ | ✅ |
+| Remote Access | ✅ (SSH) | ❌ |
+
+### Starting Console Application
+```bash
+python console.py
+```
+
+### Console Navigation
+- **Numbered Menus**: Enter numbers to select options
+- **Back Navigation**: Automatic return to main menu
+- **Data Entry**: Follow prompts for each field
+- **Confirmation**: Dangerous operations require confirmation
+- **Error Handling**: Clear error messages for invalid input
+
+## ��️ GUI Features
 
 ### Login Window
 - **Secure Authentication**: Username and password login
@@ -213,17 +249,10 @@ The `inventory.db` database file is created automatically on first run.
 - **User Information**: View username, email, role, and creation date
 - **Account Creation**: Dialog for adding new users with validation
 
-## 💻 Console Interface (Legacy)
+## 💻 Module Import (Advanced Usage)
 
-The old console interface from the original version is no longer the primary interface. The system now focuses on the modern GUI application. However, the core functionality remains:
+The system's modular architecture allows for direct module imports for development and testing:
 
-- User authentication
-- Inventory management
-- Category and supplier management
-- Transaction tracking
-- Role-based user management
-
-For development and testing of individual modules:
 ```python
 # Import modules directly
 from database import models

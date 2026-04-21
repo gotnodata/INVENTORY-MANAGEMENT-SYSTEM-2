@@ -1,7 +1,11 @@
 """Main application window for Inventory Management System"""
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
+from auth import auth
 import config
+from database import models
+from ui.dialogs import AddUserDialog
 from ui.menu import MenuManager
 from ui.tabs.inventory_tab import InventoryTab
 from ui.tabs.categories_tab import CategoriesTab
