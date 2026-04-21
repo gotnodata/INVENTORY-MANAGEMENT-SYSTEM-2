@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import config
 from database import models
-from database.models.categories import *
+from ui.theme import SearchBar, Tooltip, ValidationFrame, StatusBadge
 
 
 class InventoryTab:

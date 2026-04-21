@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 import os
 import config
 from database import models
-from database.models import *
 from database.export_helpers import export_to_csv, export_to_txt, generate_filename
 
 

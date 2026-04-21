@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 from datetime import datetime
 import config
 from database import models
-from database.models.transactions import *
+from ui.theme import SearchBar, Tooltip
 
 
 class TransactionsTab:

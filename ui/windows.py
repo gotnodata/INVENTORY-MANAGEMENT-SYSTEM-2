@@ -14,6 +14,28 @@ from ui.tabs.transactions_tab import TransactionsTab
 from ui.tabs.users_tab import UsersTab
 from ui.tabs.reports_tab import ReportsTab
 
+# region agent log
+import os as _agent_os
+_DEBUG_LOG_PATH = _agent_os.path.join(_agent_os.path.dirname(_agent_os.path.abspath(__file__)), "..", "debug-31c49c.log")
+
+def _agent_log(hypothesisId: str, location: str, message: str, data: dict | None = None, runId: str = "pre-fix"):
+    try:
+        import json, time
+        payload = {
+            "sessionId": "31c49c",
+            "runId": runId,
+            "hypothesisId": hypothesisId,
+            "location": location,
+            "message": message,
+            "data": data or {},
+            "timestamp": int(time.time() * 1000),
+        }
+        with open(_DEBUG_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+# endregion
+
 
 class InventoryManagementGUI:
     """Main application window class - coordinates all tabs"""
@@ -56,6 +78,7 @@ class InventoryManagementGUI:
     
     def _create_tabs(self, user):
         """Create all application tabs based on user role"""
+        _agent_log("H-tabs", "ui/windows.py:_create_tabs", "Creating tabs", {"role": user.get("role")})
         # Standard tabs available to all users
         InventoryTab(self.notebook, self._update_status)
         CategoriesTab(self.notebook, self._update_status)
@@ -64,7 +87,8 @@ class InventoryManagementGUI:
         
         # Admin-only tabs
         if user['role'] == config.ROLE_ADMIN:
-            UsersTab(self.notebook, self._update_status)
+            _agent_log("H-tabs", "ui/windows.py:_create_tabs", "Creating admin tabs")
+            UsersTab(self.notebook, self._update_status, current_user=user, root=self.root)
             ReportsTab(self.notebook, self._update_status)
     
     def _update_status(self, message):

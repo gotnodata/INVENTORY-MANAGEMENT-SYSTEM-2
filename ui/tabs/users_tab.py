@@ -5,7 +5,7 @@ import config
 from auth import auth
 from database import models
 from ui.dialogs import AddUserDialog
-from database.models.users import *
+from ui.theme import SearchBar, Tooltip
 
 
 class UsersTab:

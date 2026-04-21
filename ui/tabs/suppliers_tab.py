@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import config
 from database import models
-from database.models.suppliers import *
+from ui.theme import SearchBar, Tooltip
 
 
 class SuppliersTab:

@@ -16,6 +16,14 @@ DEFAULT_FONT_LABEL = ("Arial", 14, "bold")
 DEFAULT_FONT_BODY = ("Arial", 10)
 DEFAULT_FONT_SMALL = ("Arial", 9)
 
+# Common widget sizing
+ENTRY_FIELD_WIDTH = 28
+
+# Status/validation colors
+COLOR_SUCCESS = "green"
+COLOR_DANGER = "red"
+COLOR_INFO = "blue"
+
 # TreeView Column Widths
 COLUMN_WIDTH_ID = 50
 COLUMN_WIDTH_NAME = 120

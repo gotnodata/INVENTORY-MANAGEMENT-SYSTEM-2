@@ -1,0 +1,18 @@
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:__main__", "message": "Entered __main__", "data": {"argv": ["c:/Users/USER/OneDrive/Documents/Python/REAL WORLD PROJECTS/INVENTORY MANAGEMENT SYSTEM 2/main.py"]}, "timestamp": 1776757798906}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "Starting application", "data": {}, "timestamp": 1776757798907}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "Database initialized", "data": {}, "timestamp": 1776757798916}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "First-admin check completed", "data": {"created": false}, "timestamp": 1776757798918}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "Login window closed", "data": {"authenticated": true}, "timestamp": 1776757804431}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-tabs", "location": "ui/windows.py:_create_tabs", "message": "Creating tabs", "data": {"role": "admin"}, "timestamp": 1776757804765}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-view-items", "location": "database/models/inventory.py:view_items", "message": "Fetched inventory items", "data": {"rows": 1, "cols_first_row": 10}, "timestamp": 1776757805805}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-view-items", "location": "database/models/inventory.py:view_items", "message": "Fetched inventory items", "data": {"rows": 1, "cols_first_row": 10}, "timestamp": 1776757805991}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-tabs", "location": "ui/windows.py:_create_tabs", "message": "Creating admin tabs", "data": {}, "timestamp": 1776757805991}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:__main__", "message": "Entered __main__", "data": {"argv": ["c:/Users/USER/OneDrive/Documents/Python/REAL WORLD PROJECTS/INVENTORY MANAGEMENT SYSTEM 2/main.py"]}, "timestamp": 1776769011739}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "Starting application", "data": {}, "timestamp": 1776769011740}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "Database initialized", "data": {}, "timestamp": 1776769011749}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "First-admin check completed", "data": {"created": false}, "timestamp": 1776769011751}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-flow", "location": "main.py:main", "message": "Login window closed", "data": {"authenticated": true}, "timestamp": 1776769019607}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-tabs", "location": "ui/windows.py:_create_tabs", "message": "Creating tabs", "data": {"role": "admin"}, "timestamp": 1776769019872}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-view-items", "location": "database/models/inventory.py:view_items", "message": "Fetched inventory items", "data": {"rows": 1, "cols_first_row": 10}, "timestamp": 1776769020751}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-view-items", "location": "database/models/inventory.py:view_items", "message": "Fetched inventory items", "data": {"rows": 1, "cols_first_row": 10}, "timestamp": 1776769020919}
+{"sessionId": "31c49c", "runId": "pre-fix", "hypothesisId": "H-tabs", "location": "ui/windows.py:_create_tabs", "message": "Creating admin tabs", "data": {}, "timestamp": 1776769020920}

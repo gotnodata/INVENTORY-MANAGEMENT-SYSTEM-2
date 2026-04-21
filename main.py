@@ -11,6 +11,43 @@ from ui.windows import InventoryManagementGUI
 # Add current directory to Python path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# region agent log
+_DEBUG_LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "debug-31c49c.log")
+
+def _agent_log(hypothesisId: str, location: str, message: str, data: dict | None = None, runId: str = "pre-fix"):
+    try:
+        import json, time
+        payload = {
+            "sessionId": "31c49c",
+            "runId": runId,
+            "hypothesisId": hypothesisId,
+            "location": location,
+            "message": message,
+            "data": data or {},
+            "timestamp": int(time.time() * 1000),
+        }
+        with open(_DEBUG_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def _install_excepthook():
+    def _hook(exc_type, exc, tb):
+        try:
+            import traceback
+            _agent_log(
+                "H-exception",
+                "main.py:sys.excepthook",
+                "Unhandled exception",
+                {"type": getattr(exc_type, "__name__", str(exc_type)), "message": str(exc), "traceback": "".join(traceback.format_tb(tb))},
+            )
+        finally:
+            sys.__excepthook__(exc_type, exc, tb)
+
+    sys.excepthook = _hook
+# endregion
+
 
 def init_database():
     """Initialize all database tables"""
@@ -60,16 +97,21 @@ def create_first_admin():
 
 def main():
     """Main application entry point"""
+    _install_excepthook()
+    _agent_log("H-flow", "main.py:main", "Starting application")
     # Initialize database
     init_database()
+    _agent_log("H-flow", "main.py:main", "Database initialized")
     
     # Create first admin user if needed
     first_admin_created = create_first_admin()
+    _agent_log("H-flow", "main.py:main", "First-admin check completed", {"created": bool(first_admin_created)})
     
     # Show login window (either immediately or after admin creation)
     root = tk.Tk()
     login_window = LoginWindow(root)
     root.mainloop()
+    _agent_log("H-flow", "main.py:main", "Login window closed", {"authenticated": bool(login_window.authenticated_user)})
     
     # If login successful, show main application
     if login_window.authenticated_user:
@@ -79,4 +121,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _install_excepthook()
+    _agent_log("H-flow", "main.py:__main__", "Entered __main__", {"argv": sys.argv})
+    try:
+        main()
+    except Exception as e:
+        _agent_log("H-exception", "main.py:__main__", "Exception bubbled to __main__", {"type": type(e).__name__, "message": str(e)})
+        raise

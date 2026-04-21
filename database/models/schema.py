@@ -235,6 +235,13 @@ def update_database_schema():
     conn = get_connection()
     c = conn.cursor()
     
+    # Add category_id column if it doesn't exist (migrate from legacy 'category' text column)
+    try:
+        c.execute("ALTER TABLE inventory ADD COLUMN category_id INTEGER")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+
     # Add cost_price column if it doesn't exist
     try:
         c.execute("ALTER TABLE inventory ADD COLUMN cost_price REAL DEFAULT 0.0")

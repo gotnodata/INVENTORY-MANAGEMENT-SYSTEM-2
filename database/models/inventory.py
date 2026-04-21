@@ -2,6 +2,28 @@
 import sqlite3
 import config
 
+# region agent log
+import os as _agent_os
+_DEBUG_LOG_PATH = _agent_os.path.join(_agent_os.path.dirname(_agent_os.path.abspath(__file__)), "..", "..", "debug-31c49c.log")
+
+def _agent_log(hypothesisId: str, location: str, message: str, data: dict | None = None, runId: str = "pre-fix"):
+    try:
+        import json, time
+        payload = {
+            "sessionId": "31c49c",
+            "runId": runId,
+            "hypothesisId": hypothesisId,
+            "location": location,
+            "message": message,
+            "data": data or {},
+            "timestamp": int(time.time() * 1000),
+        }
+        with open(_DEBUG_LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+# endregion
+
 
 def get_connection():
     """Get database connection"""
@@ -14,9 +36,9 @@ def add_item(name, category_id, quantity, cost_price):
     c = conn.cursor()
     
     c.execute('''
-        INSERT INTO inventory (name, category, quantity, price)
-        VALUES (?, ?, ?, ?)
-    ''', (name, category_id, quantity, cost_price))
+        INSERT INTO inventory (name, category_id, quantity, price, cost_price)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (name, category_id, quantity, 0.0, cost_price))
     
     conn.commit()
     conn.close()
@@ -110,10 +132,29 @@ def view_items():
     c = conn.cursor()
     
     c.execute('''
-        SELECT * FROM inventory
-        ORDER BY name
+        SELECT
+            i.id,
+            i.name,
+            i.category_id,
+            i.quantity,
+            i.price,
+            i.measurement_unit_id,
+            c.name AS category_name,
+            mu.unit_name,
+            mu.unit_symbol,
+            i.cost_price
+        FROM inventory i
+        LEFT JOIN categories c ON i.category_id = c.id
+        LEFT JOIN measurement_units mu ON i.measurement_unit_id = mu.id
+        ORDER BY i.name
     ''')
     
     items = c.fetchall()
+    _agent_log(
+        "H-view-items",
+        "database/models/inventory.py:view_items",
+        "Fetched inventory items",
+        {"rows": len(items), "cols_first_row": (len(items[0]) if items else 0)},
+    )
     conn.close()
     return items
